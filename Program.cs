@@ -7,6 +7,7 @@ using course_service.Shared.Middleware;
 using course_service.Modules.Category.Services;
 using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Modules.Services;
+using course_service.Modules.Lesson;
 
 namespace APIWithControllers;
 
@@ -42,6 +43,7 @@ public class Program
         builder.Services.AddScoped<CategoryService>();
         builder.Services.AddScoped<CourseService>();
         builder.Services.AddScoped<ModuleService>();
+        builder.Services.AddScoped<LessonService>();
 
 
         var app = builder.Build();
