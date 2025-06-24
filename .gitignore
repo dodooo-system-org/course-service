@@ -1,0 +1,32 @@
+# .gitignore for course-service
+# Ignore build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env*
+!.env.example
+
+# Logs
+*.log
+
+# Visual Studio Code
+.vscode/
+
+# Others
+*.swp
+*.tmp
+*.bak
+
+# Ignore migrations if needed (uncomment if you want to ignore)
+# Migrations/
