@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using course_service.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace course_service.Data.Entities;
 
@@ -11,6 +12,7 @@ public enum CategoryStatus
     Suspending
 }
 
+[Index(nameof(CategoryName), IsUnique = true)]
 public class CategoryEntity : BaseEntity
 {
     [Key]

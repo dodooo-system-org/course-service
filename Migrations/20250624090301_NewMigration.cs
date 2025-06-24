@@ -146,7 +146,7 @@ namespace course_service.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "LessonContents",
+                name: "LessonParts",
                 columns: table => new
                 {
                     lesson_part_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -155,6 +155,8 @@ namespace course_service.Migrations
                     lesson_part_content = table.Column<string>(type: "text", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     order = table.Column<decimal>(type: "decimal(10,5)", nullable: false),
+                    lesson_video_url = table.Column<string>(type: "varchar(255)", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     lesson_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -162,14 +164,20 @@ namespace course_service.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LessonContents", x => x.lesson_part_id);
+                    table.PrimaryKey("PK_LessonParts", x => x.lesson_part_id);
                     table.ForeignKey(
-                        name: "FK_LessonContents_Lessons_lesson_id",
+                        name: "FK_LessonParts_Lessons_lesson_id",
                         column: x => x.lesson_id,
                         principalTable: "Lessons",
                         principalColumn: "lesson_id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_category_name",
+                table: "Categories",
+                column: "category_name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Courses_category_id",
@@ -182,8 +190,8 @@ namespace course_service.Migrations
                 column: "course_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LessonContents_lesson_id",
-                table: "LessonContents",
+                name: "IX_LessonParts_lesson_id",
+                table: "LessonParts",
                 column: "lesson_id");
 
             migrationBuilder.CreateIndex(
@@ -210,7 +218,7 @@ namespace course_service.Migrations
                 name: "Enrollments");
 
             migrationBuilder.DropTable(
-                name: "LessonContents");
+                name: "LessonParts");
 
             migrationBuilder.DropTable(
                 name: "Lessons");

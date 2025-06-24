@@ -10,7 +10,7 @@ namespace course_service.Data
         public DbSet<CourseEntity> Courses { get; set; }
         public DbSet<ModuleEntity> Modules { get; set; }
         public DbSet<LessonEntity> Lessons { get; set; }
-        public DbSet<LessonPartEntity> LessonContents { get; set; }
+        public DbSet<LessonPartEntity> LessonParts { get; set; }
         public DbSet<EnrollmentEntity> Enrollments { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)

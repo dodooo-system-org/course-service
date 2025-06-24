@@ -5,9 +5,9 @@ using Microsoft.OpenApi.Models;
 using course_service.Modules.Course.Services;
 using course_service.Shared.Middleware;
 using course_service.Modules.Category.Services;
-using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Modules.Services;
 using course_service.Modules.Lesson;
+using course_service.Modules.LessonPart.Services;
 
 namespace APIWithControllers;
 
@@ -37,14 +37,12 @@ public class Program
                 Version = "v1",
                 Title = "Course service API",
             });
-        });
-
-        // Register services
+        });        // Register services
         builder.Services.AddScoped<CategoryService>();
         builder.Services.AddScoped<CourseService>();
         builder.Services.AddScoped<ModuleService>();
         builder.Services.AddScoped<LessonService>();
-
+        builder.Services.AddScoped<LessonPartService>();
 
         var app = builder.Build();
 

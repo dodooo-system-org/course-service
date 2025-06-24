@@ -21,6 +21,13 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            var existedCategoryName = await _context.Categories
+                .FirstOrDefaultAsync(c => c.CategoryName == category.CategoryName);
+            if (existedCategoryName != null)
+            {
+                throw new ArgumentException("Category is already exists");
+            }
+
             var newCategory = new CategoryEntity
             {
                 CategoryName = category.CategoryName,

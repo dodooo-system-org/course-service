@@ -8,6 +8,6 @@ public interface IModuleService
 {
     Task<ModuleDto> CreateOneAsync(CreateModuleDto module);
     Task<ModuleDto> GetOneAsync(Guid id);
-    Task<IEnumerable<ModuleDto>> GetListAsync();
+    Task<IEnumerable<ModuleDto>> GetListAsync(Guid courseId);
     Task<ModuleDto> UpdateOneAsync(Guid id, UpdateModuleDto module);
 }

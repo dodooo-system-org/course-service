@@ -12,7 +12,7 @@ using course_service.Data;
 namespace course_service.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250624033834_NewMigration")]
+    [Migration("20250624090301_NewMigration")]
     partial class NewMigration
     {
         /// <inheritdoc />
@@ -65,6 +65,9 @@ namespace course_service.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("CategoryId");
+
+                    b.HasIndex("CategoryName")
+                        .IsUnique();
 
                     b.ToTable("Categories");
                 });
@@ -236,6 +239,10 @@ namespace course_service.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("lesson_part_name");
 
+                    b.Property<string>("LessonVideoUrl")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("lesson_video_url");
+
                     b.Property<decimal>("Order")
                         .HasColumnType("decimal(10, 5)")
                         .HasColumnName("order");
@@ -248,7 +255,7 @@ namespace course_service.Migrations
 
                     b.HasIndex("LessonId");
 
-                    b.ToTable("LessonContents");
+                    b.ToTable("LessonParts");
                 });
 
             modelBuilder.Entity("course_service.Data.Entities.ModuleEntity", b =>

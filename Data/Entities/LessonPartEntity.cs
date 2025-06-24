@@ -24,6 +24,9 @@ public class LessonPartEntity : BaseEntity
     [Column("order", TypeName = "decimal(10, 5)")]
     public decimal Order { get; set; } = 0;
 
+    [Column("lesson_video_url", TypeName = "varchar(255)")]
+    public string? LessonVideoUrl { get; set; } = null;
+
     [Column("lesson_id", TypeName = "char(36)")]
     public Guid? LessonId { get; set; } = null;
     [ForeignKey("LessonId")]

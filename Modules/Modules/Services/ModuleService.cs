@@ -63,12 +63,12 @@ public class ModuleService : IModuleService
         }
     }
 
-    public async Task<IEnumerable<ModuleDto>> GetListAsync()
+    public async Task<IEnumerable<ModuleDto>> GetListAsync(Guid courseId)
     {
         try
         {
             var modules = await _context.Modules.ToListAsync();
-            return modules.Select(module => module.MapModuleDto());
+            return modules.Where(m => m.CourseId == courseId).Select(module => module.MapModuleDto()).OrderBy(m => m.Order);
         }
         catch (Exception error)
         {
