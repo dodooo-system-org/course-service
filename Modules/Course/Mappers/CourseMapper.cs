@@ -8,6 +8,14 @@ public static class CourseMapper
 {
     static public CourseDto MapToDto(this CourseEntity courseEntity)
     {
+        if (courseEntity == null)
+        {
+            throw new ArgumentNullException(nameof(courseEntity), "Course entity cannot be null");
+        }
+        if (courseEntity.CourseId == Guid.Empty)
+        {
+            throw new ArgumentException("CourseId cannot be empty", nameof(courseEntity));
+        }
         return new CourseDto
         {
             CourseId = courseEntity.CourseId,

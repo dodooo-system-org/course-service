@@ -35,8 +35,8 @@ public class CourseEntity : BaseEntity
     public string? CourseImageUrl { get; set; }
 
     [Column("category_id")]
-    public Guid CategoryId { get; set; }
+    public Guid? CategoryId { get; set; }
 
     [ForeignKey("CategoryId")]
-    public required CategoryEntity Category { get; set; }
+    public CategoryEntity? Category { get; set; }
 }

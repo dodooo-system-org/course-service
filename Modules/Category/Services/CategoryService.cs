@@ -47,10 +47,10 @@ public class CategoryService : ICategoryService
             {
                 throw new ArgumentException("Category ID cannot be empty.", nameof(id));
             }
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id);
             if (category == null)
             {
-                throw new Exception($"Category not found");
+                throw new KeyNotFoundException($"Category not found");
             }
             return category;
         }

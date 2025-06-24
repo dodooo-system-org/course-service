@@ -1,5 +1,6 @@
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Category.Services;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Interfaces;
 using course_service.Modules.Course.Mappers;
@@ -11,10 +12,12 @@ namespace course_service.Modules.Course.Services;
 public class CourseService : ICourseService
 {
     private readonly AppDbContext _context;
+    private readonly CategoryService _categoryService;
     private readonly ILogger<CourseService> _logger;
-    public CourseService(AppDbContext context)
+    public CourseService(AppDbContext context, CategoryService categoryService)
     {
         _context = context;
+        _categoryService = categoryService;
         _logger = LoggerHelper.GetLogger<CourseService>();
     }
 
@@ -22,6 +25,13 @@ public class CourseService : ICourseService
     {
         try
         {
+            // Check if the category exists
+            var category = await _categoryService.GetOneAsync(course.CategoryId);
+            if (category == null)
+            {
+                throw new KeyNotFoundException($"Category not found");
+            }
+
             CourseEntity newCourse = new()
             {
                 CourseName = course.CourseName,
@@ -29,7 +39,7 @@ public class CourseService : ICourseService
                 CourseImageUrl = course.CourseImageUrl,
                 Level = course.CourseLevel,
                 CategoryId = course.CategoryId,
-                Category = null!
+                Category = category
             };
             _context.Courses.Add(newCourse);
             await _context.SaveChangesAsync();

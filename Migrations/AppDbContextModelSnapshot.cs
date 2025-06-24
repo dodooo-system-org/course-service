@@ -289,6 +289,9 @@ namespace course_service.Migrations
 
                     b.HasIndex("CourseId");
 
+                    b.HasIndex("Order")
+                        .IsUnique();
+
                     b.ToTable("Modules");
                 });
 

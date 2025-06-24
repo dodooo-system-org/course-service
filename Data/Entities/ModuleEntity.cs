@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using course_service.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace course_service.Data.Entities;
 
+[Index(nameof(Order), IsUnique = true)]
 public class ModuleEntity : BaseEntity
 {
     [Key]
@@ -23,7 +25,7 @@ public class ModuleEntity : BaseEntity
     public decimal Order { get; set; } = 0;
 
     [Column("course_id", TypeName = "char(36)")]
-    public Guid CourseId { get; set; }
+    public Guid? CourseId { get; set; }
     [ForeignKey("CourseId")]
-    public required CourseEntity Course { get; set; }
+    public CourseEntity? Course { get; set; }
 }

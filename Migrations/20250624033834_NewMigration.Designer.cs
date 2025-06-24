@@ -12,7 +12,7 @@ using course_service.Data;
 namespace course_service.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250623025515_NewMigration")]
+    [Migration("20250624033834_NewMigration")]
     partial class NewMigration
     {
         /// <inheritdoc />
@@ -291,6 +291,9 @@ namespace course_service.Migrations
                     b.HasKey("ModuleId");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("Order")
+                        .IsUnique();
 
                     b.ToTable("Modules");
                 });

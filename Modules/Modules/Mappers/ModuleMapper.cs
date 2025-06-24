@@ -19,7 +19,7 @@ public static class ModuleMapper
             ModuleName = module.ModuleName,
             ModuleDescription = module.ModuleDescription,
             Order = module.Order,
-            CourseId = module.CourseId,
+            CourseId = Guid.TryParse(module.CourseId?.ToString(), out var courseId) ? courseId : Guid.Empty,
             CreatedAt = module.CreatedAt,
             UpdatedAt = module.UpdatedAt,
             DeletedAt = module.DeletedAt
