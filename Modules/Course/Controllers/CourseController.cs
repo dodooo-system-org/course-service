@@ -1,6 +1,7 @@
-using course_service.Data;
+using course_service.Attributes;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace course_service.Modules.Course.Controllers
@@ -17,6 +18,7 @@ namespace course_service.Modules.Course.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllCourses()
         {
             var courses = await _courseService.GetAllCoursesAsync();
@@ -24,6 +26,7 @@ namespace course_service.Modules.Course.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCourseById(Guid id)
         {
             var course = await _courseService.GetCourseByIdAsync(id);

@@ -1,5 +1,6 @@
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,7 @@ namespace course_service.Modules.Category.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetOneAsync([FromRoute] Guid id)
         {
             var category = await _categoryService.GetOneAsync(id);
@@ -31,6 +33,7 @@ namespace course_service.Modules.Category.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetListAsync()
         {
             var categories = await _categoryService.GetListAsync();

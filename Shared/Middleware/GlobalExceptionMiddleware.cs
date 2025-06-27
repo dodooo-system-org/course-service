@@ -24,7 +24,7 @@ namespace course_service.Shared.Middleware
                 string errorMessage = ex.GetType() != typeof(Exception) ? ex.Message : "An unexpected error occurred";
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";
-                var result = JsonSerializer.Serialize(new { error = errorMessage });
+                var result = JsonSerializer.Serialize(new { error = errorMessage, timestamp = DateTime.UtcNow });
                 await context.Response.WriteAsync(result);
             }
         }

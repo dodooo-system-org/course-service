@@ -27,9 +27,9 @@ namespace course_service.Modules.Modules.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ModuleEntity>>> GetList()
+        public async Task<ActionResult<IEnumerable<ModuleEntity>>> GetList(Guid courseId)
         {
-            var modules = await _moduleService.GetListAsync();
+            var modules = await _moduleService.GetListAsync(courseId);
             return Ok(modules);
         }
 

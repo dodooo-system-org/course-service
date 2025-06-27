@@ -8,6 +8,8 @@ using course_service.Modules.Category.Services;
 using course_service.Modules.Modules.Services;
 using course_service.Modules.Lesson;
 using course_service.Modules.LessonPart.Services;
+using course_service.Shared.RMQ;
+using course_service.Shared.RMQ.Interfaces;
 
 namespace APIWithControllers;
 
@@ -37,7 +39,15 @@ public class Program
                 Version = "v1",
                 Title = "Course service API",
             });
-        });        // Register services
+        });
+
+        // Add health checks (without RabbitMQ since our service manages its own connection)
+        builder.Services.AddHealthChecks();
+
+        // Register RabbitMQ service
+        builder.Services.AddSingleton<IRMQService, RMQService>();
+
+        // Register services
         builder.Services.AddScoped<CategoryService>();
         builder.Services.AddScoped<CourseService>();
         builder.Services.AddScoped<ModuleService>();
@@ -45,6 +55,10 @@ public class Program
         builder.Services.AddScoped<LessonPartService>();
 
         var app = builder.Build();
+
+        // Initialize RabbitMQ service to ensure queue creation
+        var rmqService = app.Services.GetRequiredService<IRMQService>();
+
 
         // Configure Swagger for API documentation
         if (app.Environment.IsDevelopment())
@@ -65,6 +79,10 @@ public class Program
 
         // Register global exception middleware
         app.UseMiddleware<GlobalExceptionMiddleware>();
+        app.UseMiddleware<AuthenticationMiddleware>();
+
+        // Map health check endpoint
+        app.MapHealthChecks("/health");
 
         app.MapControllers();
 
