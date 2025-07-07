@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using course_service.Data.Entities;
 using course_service.Modules.Modules.DTOs;
 using course_service.Modules.Modules.Services;
+using course_service.Attributes;
 
 namespace course_service.Modules.Modules.Controllers
 {
@@ -20,6 +21,7 @@ namespace course_service.Modules.Modules.Controllers
         }
 
         [HttpPost]
+        [RequireAdmin]
         public async Task<ActionResult<ModuleEntity>> CreateOne([FromBody] CreateModuleDto moduleDto)
         {
             var module = await _moduleService.CreateOneAsync(moduleDto);
@@ -41,6 +43,7 @@ namespace course_service.Modules.Modules.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequireAdmin]
         public async Task<ActionResult<ModuleEntity>> UpdateOne(Guid id, [FromBody] UpdateModuleDto moduleDto)
         {
             var updatedModule = await _moduleService.UpdateOneAsync(id, moduleDto);

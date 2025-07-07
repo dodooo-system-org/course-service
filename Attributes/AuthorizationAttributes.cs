@@ -1,35 +1,19 @@
 // Attributes/AuthorizationAttributes.cs
-using Microsoft.AspNetCore.Mvc;
+using course_service.Shared.DTOs;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace course_service.Attributes;
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class RequireAuthAttribute : Attribute, IAuthorizationFilter
-{
-    public void OnAuthorization(AuthorizationFilterContext context)
-    {
-
-    }
-}
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class RequireAdminAttribute : Attribute, IAuthorizationFilter
 {
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var isAuthenticated = context.HttpContext.Items["IsAuthenticated"] as bool?;
-        var userRole = context.HttpContext.Items["UserRole"] as string;
-
-        if (isAuthenticated != true)
+        var authInfo = context.HttpContext.Items["Auth"] as AuthInfoDto;
+        if (authInfo?.Role == "admin")
         {
-            context.Result = new UnauthorizedObjectResult(new { message = "Authentication required" });
-            return;
+            return; // User is an admin, allow access
         }
-
-        if (userRole != "admin")
-        {
-            context.Result = new ForbidResult();
-        }
+        throw new UnauthorizedAccessException("You do not have permission");
     }
 }

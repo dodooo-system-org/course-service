@@ -1,3 +1,4 @@
+using course_service.Attributes;
 using course_service.Modules.Lesson.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +30,7 @@ namespace course_service.Modules.Lesson.Controllers
         }
 
         [HttpPost]
+        [RequireAdmin]
         public async Task<IActionResult> CreateLesson([FromBody] CreateLessonDto lesson)
         {
             var createdLesson = await _lessonService.CreateOneAsync(lesson);
@@ -36,6 +38,7 @@ namespace course_service.Modules.Lesson.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequireAdmin]
         public async Task<IActionResult> UpdateLesson(Guid id, [FromBody] UpdateLessonDto lesson)
         {
             var updateLesson = await _lessonService.UpdateOneAsync(id, lesson);

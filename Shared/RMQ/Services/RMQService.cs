@@ -66,7 +66,7 @@ public class RMQService : IDisposable, IRMQService
         }
     }
 
-    public async Task Subscribe<T>(string routingKey, Func<T, Task> messageHandler) where T : class
+    public async Task Subscribe<T>(string routingKey, Func<T, Task>? messageHandler) where T : class
     {
         // Bind the queue to the exchange with routing key
         await _channel.QueueBindAsync(
@@ -96,10 +96,9 @@ public class RMQService : IDisposable, IRMQService
                     }
                 }
 
-
                 // Deserialize the actual message using the generic type T
                 var message = JsonSerializer.Deserialize<T>(jsonString);
-                if (message != null)
+                if (message != null && messageHandler != null)
                 {
                     await messageHandler(message);
                 }

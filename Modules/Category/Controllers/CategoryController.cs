@@ -1,3 +1,4 @@
+using course_service.Attributes;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,7 @@ namespace course_service.Modules.Category.Controllers
         }
 
         [HttpPost]
+        [RequireAdmin]
         public async Task<IActionResult> CreateOneAsync([FromBody] CreateCategoryDto category)
         {
             var newCategory = await _categoryService.CreateOneAsync(category);
@@ -41,6 +43,7 @@ namespace course_service.Modules.Category.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequireAdmin]
         public async Task<IActionResult> UpdateOneAsync([FromRoute] Guid id, [FromBody] UpdateCategoryDto category)
         {
             var updatedCategory = await _categoryService.UpdateOneAsync(id, category);

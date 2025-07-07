@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using course_service.Modules.LessonPart.DTOs;
 using course_service.Modules.LessonPart.Services;
+using course_service.Attributes;
 
 namespace course_service.Modules.LessonPart.Controllers
 {
@@ -17,6 +18,7 @@ namespace course_service.Modules.LessonPart.Controllers
         }
 
         [HttpPost]
+        [RequireAdmin]
         public async Task<IActionResult> CreateLessonPart([FromBody] CreateLessonPartDto lessonPartDto)
         {
             var createdLessonPart = await _lessonPartService.CreateOneAsync(lessonPartDto);
@@ -38,6 +40,7 @@ namespace course_service.Modules.LessonPart.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequireAdmin]
         public async Task<IActionResult> UpdateLessonPart(Guid id, [FromBody] UpdateLessonPartDto lessonPartDto)
         {
             var updatedLessonPart = await _lessonPartService.UpdateOneAsync(id, lessonPartDto);
