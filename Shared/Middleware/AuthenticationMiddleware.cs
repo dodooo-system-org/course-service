@@ -1,19 +1,16 @@
-using System;
 using course_service.Shared.RMQ.Interfaces;
-using course_service.Shared.Services.RabbitMQ.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using RabbitMQ.Client;
 
 namespace course_service.Shared.Middleware;
 
 public class AuthenticationMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IRMQService _rmqService;
-    public AuthenticationMiddleware(RequestDelegate next, IRMQService rmqService)
+    private readonly IRMQAuthService _rmqAuthService;
+    public AuthenticationMiddleware(RequestDelegate next, IRMQAuthService rmqAuthService)
     {
         _next = next;
-        _rmqService = rmqService;
+        _rmqAuthService = rmqAuthService;
     }
 
     private string ExtractToken(HttpContext context)
@@ -27,18 +24,36 @@ public class AuthenticationMiddleware
         return String.Empty;
     }
 
-    private TokenValidationRequest CreateTokenValidationRequest(string token)
-    {
-        string correlationId = Guid.NewGuid().ToString();
-        return new TokenValidationRequest
-        {
-            CorrelationId = correlationId,
-            Token = token
-        };
-    }
+
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Check if the endpoint has AllowAnonymous attribute
+        var endpoint = context.GetEndpoint();
+        var allowAnonymous = endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() != null;
+
+        if (allowAnonymous)
+        {
+            // Skip authentication for anonymous endpoints
+            await _next(context);
+            return;
+        }
+
+        var token = this.ExtractToken(context);
+        if (!string.IsNullOrEmpty(token))
+        {
+            var response = await _rmqAuthService.ValidateTokenAsync(token);
+            if (!response.IsValid && response.Error != null)
+            {
+                throw new ArgumentException(response.Error);
+            }
+            else
+            {
+                context.Items["Auth"] = response.Auth;
+                await _next(context);
+                return;
+            }
+        }
         throw new UnauthorizedAccessException("Unauthorized access");
     }
 }

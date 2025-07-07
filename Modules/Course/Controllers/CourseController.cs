@@ -34,6 +34,7 @@ namespace course_service.Modules.Course.Controllers
         }
 
         [HttpPost]
+        [RequireAdmin]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto createCourseDto)
         {
             var result = await _courseService.CreateCourseAsync(createCourseDto);
@@ -41,6 +42,7 @@ namespace course_service.Modules.Course.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequireAdmin]
         public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto updateCourseDto)
         {
             var updatedCourse = await _courseService.UpdateCourseAsync(id, updateCourseDto);

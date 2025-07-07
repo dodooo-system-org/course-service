@@ -10,6 +10,7 @@ using course_service.Modules.Lesson;
 using course_service.Modules.LessonPart.Services;
 using course_service.Shared.RMQ;
 using course_service.Shared.RMQ.Interfaces;
+using course_service.Shared.RMQ.Services;
 
 namespace APIWithControllers;
 
@@ -46,6 +47,7 @@ public class Program
 
         // Register RabbitMQ service
         builder.Services.AddSingleton<IRMQService, RMQService>();
+        builder.Services.AddSingleton<IRMQAuthService, RMQAuthService>();
 
         // Register services
         builder.Services.AddScoped<CategoryService>();

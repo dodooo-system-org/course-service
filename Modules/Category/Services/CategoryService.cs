@@ -88,7 +88,7 @@ public class CategoryService : ICategoryService
             var existingCategory = await _context.Categories.FindAsync(id);
             if (existingCategory == null)
             {
-                throw new Exception("Category not found");
+                throw new KeyNotFoundException("Category not found");
             }
             existingCategory.CategoryName = category.CategoryName;
             existingCategory.CategoryDescription = category.CategoryDescription;

@@ -12,6 +12,22 @@ namespace course_service.Shared.Middleware
         {
             _next = next;
         }
+        private int GetStatusCode(Exception ex)
+        {
+            switch (ex)
+            {
+                case UnauthorizedAccessException:
+                    return (int)HttpStatusCode.Unauthorized;
+                case ArgumentException:
+                    return (int)HttpStatusCode.BadRequest;
+                case KeyNotFoundException:
+                    return (int)HttpStatusCode.NotFound;
+                case InvalidOperationException:
+                    return (int)HttpStatusCode.Conflict;
+                default:
+                    return (int)HttpStatusCode.InternalServerError;
+            }
+        }
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -21,12 +37,16 @@ namespace course_service.Shared.Middleware
             }
             catch (Exception ex)
             {
+                int statusCode = this.GetStatusCode(ex);
+
                 string errorMessage = ex.GetType() != typeof(Exception) ? ex.Message : "An unexpected error occurred";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";
                 var result = JsonSerializer.Serialize(new { error = errorMessage, timestamp = DateTime.UtcNow });
                 await context.Response.WriteAsync(result);
             }
         }
+
+
     }
 }
