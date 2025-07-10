@@ -4,7 +4,12 @@ namespace course_service.Shared.Helpers;
 
 public static class LoggerHelper
 {
-    private static readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+    private static ILoggerFactory _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+    }
 
     public static ILogger<T> GetLogger<T>()
     {

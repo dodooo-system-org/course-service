@@ -25,7 +25,7 @@ public class CategoryService : ICategoryService
                 .FirstOrDefaultAsync(c => c.CategoryName == category.CategoryName);
             if (existedCategoryName != null)
             {
-                throw new ArgumentException("Category is already exists");
+                throw new ArgumentException("Category already exists");
             }
 
             var newCategory = new CategoryEntity
@@ -42,7 +42,7 @@ public class CategoryService : ICategoryService
         catch (Exception error)
         {
             _logger.LogError(error, "Create category failed");
-            throw ServiceErrorHelper.GenerateErrorService(error, "Failed to create category");
+            throw ServiceErrorHelper.GenerateErrorService(error, "Create category failed");
         }
     }
 
@@ -52,7 +52,7 @@ public class CategoryService : ICategoryService
         {
             if (id == Guid.Empty)
             {
-                throw new ArgumentException("Category ID cannot be empty.", nameof(id));
+                throw new ArgumentException("Category ID cannot be empty.");
             }
             var category = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id);
             if (category == null)
@@ -77,7 +77,7 @@ public class CategoryService : ICategoryService
         catch (Exception error)
         {
             _logger.LogError(error, "Get categories list failed");
-            throw ServiceErrorHelper.GenerateErrorService(error, "Failed to get categories list");
+            throw ServiceErrorHelper.GenerateErrorService(error, "Get categories list failed");
         }
     }
 
@@ -85,6 +85,10 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException("Category ID cannot be empty.");
+            }
             var existingCategory = await _context.Categories.FindAsync(id);
             if (existingCategory == null)
             {
