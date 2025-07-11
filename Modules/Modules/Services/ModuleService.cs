@@ -67,6 +67,10 @@ public class ModuleService : IModuleService
     {
         try
         {
+            if (courseId == Guid.Empty)
+            {
+                throw new ArgumentException("Course ID cannot be empty");
+            }
             var modules = await _context.Modules.ToListAsync();
             return modules.Where(m => m.CourseId == courseId).Select(module => module.MapModuleDto()).OrderBy(m => m.Order);
         }
@@ -83,7 +87,7 @@ public class ModuleService : IModuleService
         {
             if (id == Guid.Empty)
             {
-                throw new ArgumentException("Module ID cannot be empty.", nameof(id));
+                throw new ArgumentException("Module ID cannot be empty");
             }
             var module = await _context.Modules.FirstOrDefaultAsync(c => c.ModuleId == id);
             if (module == null)
@@ -103,6 +107,10 @@ public class ModuleService : IModuleService
     {
         try
         {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException("Module ID cannot be empty");
+            }
             var existingModule = await _context.Modules.FirstOrDefaultAsync(c => c.ModuleId == id);
             if (existingModule == null)
             {
