@@ -3,7 +3,7 @@ using course_service.Data.Entities;
 using course_service.Modules.Lesson.DTOs;
 using course_service.Modules.Lesson.Interfaces;
 using course_service.Modules.Lesson.Mappers;
-using course_service.Modules.Modules.Services;
+using course_service.Modules.Modules.Interfaces;
 using course_service.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +12,10 @@ namespace course_service.Modules.Lesson;
 public class LessonService : ILessonService
 {
     private readonly AppDbContext _context;
-    private readonly ModuleService _moduleService;
+    private readonly IModuleService _moduleService;
     private readonly ILogger<LessonService> _logger;
 
-    public LessonService(AppDbContext context, ModuleService moduleService)
+    public LessonService(AppDbContext context, IModuleService moduleService)
     {
         _context = context;
         _moduleService = moduleService;

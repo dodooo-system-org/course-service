@@ -1,7 +1,7 @@
 using System;
 using course_service.Data;
 using course_service.Data.Entities;
-using course_service.Modules.Lesson;
+using course_service.Modules.Lesson.Interfaces;
 using course_service.Modules.LessonPart.DTOs;
 using course_service.Modules.LessonPart.Interfaces;
 using course_service.Modules.LessonPart.Mappers;
@@ -13,9 +13,9 @@ namespace course_service.Modules.LessonPart.Services;
 public class LessonPartService : ILessonPartService
 {
     private readonly AppDbContext _context;
-    private readonly LessonService _lessonService;
+    private readonly ILessonService _lessonService;
     private readonly ILogger<LessonPartService> _logger;
-    public LessonPartService(AppDbContext context, LessonService lessonService)
+    public LessonPartService(AppDbContext context, ILessonService lessonService)
     {
         _context = context;
         _lessonService = lessonService;

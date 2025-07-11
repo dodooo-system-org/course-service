@@ -1,5 +1,6 @@
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Category.Services;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Interfaces;
@@ -12,9 +13,9 @@ namespace course_service.Modules.Course.Services;
 public class CourseService : ICourseService
 {
     private readonly AppDbContext _context;
-    private readonly CategoryService _categoryService;
+    private readonly ICategoryService _categoryService;
     private readonly ILogger<CourseService> _logger;
-    public CourseService(AppDbContext context, CategoryService categoryService)
+    public CourseService(AppDbContext context, ICategoryService categoryService)
     {
         _context = context;
         _categoryService = categoryService;
@@ -72,7 +73,7 @@ public class CourseService : ICourseService
         {
             if (courseId == Guid.Empty)
             {
-                throw new ArgumentException("Course ID cannot be empty", nameof(courseId));
+                throw new ArgumentException("Course ID cannot be empty");
             }
             var course = await _context.Courses.Include(c => c.Category).FirstOrDefaultAsync(c => c.CourseId == courseId);
             if (course == null)
@@ -92,16 +93,24 @@ public class CourseService : ICourseService
     {
         try
         {
+            if (courseId == Guid.Empty)
+            {
+                throw new ArgumentException("Course ID cannot be empty");
+            }
+            // Validate and check categoryId existence
+            var category = await _categoryService.GetOneAsync(course.CategoryId);
+
             var existingCourse = _context.Courses.FirstOrDefault(c => c.CourseId == courseId);
             if (existingCourse == null)
             {
-                throw new KeyNotFoundException($"Course with ID {courseId} not found");
+                throw new KeyNotFoundException($"Course not found");
             }
             existingCourse.CourseName = course.CourseName;
             existingCourse.CourseDescription = course.CourseDescription;
             existingCourse.CourseImageUrl = course.CourseImageUrl;
             existingCourse.Level = course.CourseLevel;
-            existingCourse.CategoryId = course.CategoryId;
+            existingCourse.CategoryId = category.CategoryId;
+            existingCourse.Category = category;
             existingCourse.UpdatedAt = DateTime.UtcNow;
             _context.Courses.Update(existingCourse);
             await _context.SaveChangesAsync();

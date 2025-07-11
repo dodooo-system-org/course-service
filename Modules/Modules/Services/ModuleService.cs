@@ -1,7 +1,7 @@
 using System;
 using course_service.Data;
 using course_service.Data.Entities;
-using course_service.Modules.Course.Services;
+using course_service.Modules.Course.Interfaces;
 using course_service.Modules.Modules.DTOs;
 using course_service.Modules.Modules.Interfaces;
 using course_service.Modules.Modules.Mappers;
@@ -13,9 +13,9 @@ namespace course_service.Modules.Modules.Services;
 public class ModuleService : IModuleService
 {
     private readonly AppDbContext _context;
-    private readonly CourseService _courseService;
+    private readonly ICourseService _courseService;
     private readonly ILogger<ModuleService> _logger;
-    public ModuleService(AppDbContext context, CourseService courseService)
+    public ModuleService(AppDbContext context, ICourseService courseService)
     {
         _context = context;
         _courseService = courseService;

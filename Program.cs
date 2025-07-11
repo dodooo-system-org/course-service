@@ -11,6 +11,11 @@ using course_service.Modules.LessonPart.Services;
 using course_service.Shared.RMQ;
 using course_service.Shared.RMQ.Interfaces;
 using course_service.Shared.RMQ.Services;
+using course_service.Modules.Course.Interfaces;
+using course_service.Modules.Category.Interfaces;
+using course_service.Modules.Modules.Interfaces;
+using course_service.Modules.Lesson.Interfaces;
+using course_service.Modules.LessonPart.Interfaces;
 
 namespace APIWithControllers;
 
@@ -50,11 +55,11 @@ public class Program
         builder.Services.AddSingleton<IRMQAuthService, RMQAuthService>();
 
         // Register services
-        builder.Services.AddScoped<CategoryService>();
-        builder.Services.AddScoped<CourseService>();
-        builder.Services.AddScoped<ModuleService>();
-        builder.Services.AddScoped<LessonService>();
-        builder.Services.AddScoped<LessonPartService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
+        builder.Services.AddScoped<ICourseService, CourseService>();
+        builder.Services.AddScoped<IModuleService, ModuleService>();
+        builder.Services.AddScoped<ILessonService, LessonService>();
+        builder.Services.AddScoped<ILessonPartService, LessonPartService>();
 
         var app = builder.Build();
 

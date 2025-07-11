@@ -21,6 +21,7 @@ public class CreateCourseDto
     [EnumDataType(typeof(CourseLevel), ErrorMessage = "Invalid course level.")]
     public required CourseLevel CourseLevel { get; set; }
 
+    [Url(ErrorMessage = "Invalid URL format.")]
     public string? CourseImageUrl { get; set; }
 
     [Required(ErrorMessage = "Category ID is required.")]
