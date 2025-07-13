@@ -30,6 +30,16 @@ public class LessonPartService : ILessonPartService
             {
                 throw new KeyNotFoundException("Lesson not found");
             }
+
+            // Check for duplicate order within the same lesson
+            var existedOrderLessonPart = await _context.LessonParts
+                .Where(lp => lp.LessonId == lessonPartDto.LessonId && lp.Order == lessonPartDto.Order)
+                .FirstOrDefaultAsync();
+            if (existedOrderLessonPart != null)
+            {
+                throw new ArgumentException("Order was existed");
+            }
+
             var lessonPartEntity = new LessonPartEntity
             {
                 LessonPartName = lessonPartDto.LessonPartName,
@@ -77,6 +87,11 @@ public class LessonPartService : ILessonPartService
     {
         try
         {
+            if (lessonPartId == Guid.Empty)
+            {
+                throw new ArgumentException("Lesson part ID cannot be empty");
+            }
+
             var lessonPart = await _context.LessonParts.FirstOrDefaultAsync(lp => lp.LessonPartId == lessonPartId);
             if (lessonPart == null)
             {
@@ -95,6 +110,11 @@ public class LessonPartService : ILessonPartService
     {
         try
         {
+            if (lessonPartId == Guid.Empty)
+            {
+                throw new ArgumentException("Lesson part ID cannot be empty");
+            }
+
             var lessonPart = await _context.LessonParts.FirstOrDefaultAsync(lp => lp.LessonPartId == lessonPartId);
 
             if (lessonPart == null)
@@ -102,12 +122,11 @@ public class LessonPartService : ILessonPartService
                 throw new KeyNotFoundException("Lesson part not found");
             }
 
-            // Update the lesson part properties
+            // Update the lesson part properties without modifying lessonId
             lessonPart.LessonPartName = lessonPartDto.LessonPartName;
             lessonPart.LessonPartContent = lessonPartDto.LessonPartContent;
             lessonPart.Order = lessonPartDto.Order;
             lessonPart.LessonVideoUrl = lessonPartDto.LessonVideoUrl;
-            lessonPart.LessonId = lessonPartDto.LessonId;
 
             await _context.SaveChangesAsync();
             return lessonPart.MapToDto();
