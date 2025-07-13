@@ -9,5 +9,5 @@ public interface ILessonService
     Task<LessonDto> CreateOneAsync(CreateLessonDto lessonDto);
     Task<LessonDto> UpdateOneAsync(Guid id, UpdateLessonDto updateLessonDto);
     Task<LessonDto> GetOneByIdAsync(Guid id);
-    Task<IEnumerable<LessonDto>> GetAllAsync(Guid? moduleId = null);
+    Task<IEnumerable<LessonDto>> GetAllAsync(Guid moduleId);
 }

@@ -13,6 +13,7 @@ public static class LessonMapper
             LessonId = lessonEntity.LessonId,
             LessonName = lessonEntity.LessonName,
             LessonDescription = lessonEntity.LessonDescription,
+            Duration = lessonEntity.Duration,
             Order = lessonEntity.Order,
             ModuleId = lessonEntity.ModuleId
         };

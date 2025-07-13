@@ -15,9 +15,9 @@ namespace course_service.Modules.Lesson.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLessons()
+        public async Task<IActionResult> GetLessons([FromQuery] Guid moduleId)
         {
-            var lessons = await _lessonService.GetAllAsync();
+            var lessons = await _lessonService.GetAllAsync(moduleId);
             Console.WriteLine(lessons.Count());
             return Ok(lessons);
         }

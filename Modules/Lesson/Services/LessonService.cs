@@ -32,6 +32,14 @@ public class LessonService : ILessonService
                 throw new KeyNotFoundException($"Module not found");
             }
 
+            var existedOrderLesson = await _context.Lessons
+                .Where(l => l.ModuleId == lessonDto.ModuleId && l.Order == lessonDto.Order)
+                .FirstOrDefaultAsync();
+            if (existedOrderLesson != null)
+            {
+                throw new ArgumentException("Order was existed");
+            }
+
             var lessonEntity = new LessonEntity
             {
                 LessonId = Guid.NewGuid(),
@@ -49,21 +57,30 @@ public class LessonService : ILessonService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating lesson");
-            throw ServiceErrorHelper.GenerateErrorService(ex);
+            throw ServiceErrorHelper.GenerateErrorService(ex, "Failed to create lesson");
         }
     }
 
-    public async Task<IEnumerable<LessonDto>> GetAllAsync(Guid? moduleId = null)
+    public async Task<IEnumerable<LessonDto>> GetAllAsync(Guid moduleId)
     {
         try
         {
-            var lessons = await _context.Lessons.ToListAsync();
-            return lessons.Select(c => c.MapToDto()).Where(l => !moduleId.HasValue || l.ModuleId == moduleId.Value);
+            // Check if module exists
+            var existedModule = await _moduleService.GetOneAsync(moduleId);
+            if (existedModule == null)
+            {
+                throw new KeyNotFoundException($"Module not found");
+            }
+
+            var lessons = await _context.Lessons.Where(l => l.ModuleId == moduleId)
+                .Select(l => l.MapToDto())
+                .ToListAsync();
+            return lessons;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error get list of lessons");
-            throw ServiceErrorHelper.GenerateErrorService(ex);
+            throw ServiceErrorHelper.GenerateErrorService(ex, "Failed to get lessons");
         }
     }
 
@@ -71,6 +88,11 @@ public class LessonService : ILessonService
     {
         try
         {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException("Lesson ID cannot be empty");
+            }
+
             var lesson = await _context.Lessons.FirstOrDefaultAsync(l => l.LessonId == id);
             if (lesson == null)
             {
@@ -81,7 +103,7 @@ public class LessonService : ILessonService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error getting lesson with ID: {id}");
-            throw ServiceErrorHelper.GenerateErrorService(ex);
+            throw ServiceErrorHelper.GenerateErrorService(ex, "Failed to get lesson");
         }
     }
 
@@ -89,18 +111,31 @@ public class LessonService : ILessonService
     {
         try
         {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException("Lesson ID cannot be empty");
+            }
+
             var lesson = await _context.Lessons.FirstOrDefaultAsync(l => l.LessonId == id);
             if (lesson == null)
             {
                 throw new KeyNotFoundException("Lesson not found");
             }
 
-            // Update lesson properties
+            // Check for duplicate order within the same module (excluding current lesson)
+            var existedOrderLesson = await _context.Lessons
+                .Where(l => l.ModuleId == updateLessonDto.ModuleId && l.Order == updateLessonDto.Order && l.LessonId != id)
+                .FirstOrDefaultAsync();
+            if (existedOrderLesson != null)
+            {
+                throw new ArgumentException("Order was existed");
+            }
+
+            // Update lesson properties without modifying ModuleId
             lesson.LessonName = updateLessonDto.LessonName;
             lesson.LessonDescription = updateLessonDto.LessonDescription;
             lesson.Order = updateLessonDto.Order;
             lesson.Duration = updateLessonDto.Duration;
-            lesson.ModuleId = updateLessonDto.ModuleId;
             lesson.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -109,7 +144,7 @@ public class LessonService : ILessonService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error updating lesson with ID: {id}");
-            throw ServiceErrorHelper.GenerateErrorService(ex);
+            throw ServiceErrorHelper.GenerateErrorService(ex, "Failed to update lesson");
         }
     }
 }
