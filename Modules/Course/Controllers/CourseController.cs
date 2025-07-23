@@ -1,6 +1,7 @@
+
 using course_service.Attributes;
 using course_service.Modules.Course.DTOs;
-using course_service.Modules.Course.Services;
+using course_service.Modules.Course.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,9 +11,9 @@ namespace course_service.Modules.Course.Controllers
     [ApiController]
     public class CourseController : ControllerBase
     {
-        private readonly CourseService _courseService;
+        private readonly ICourseService _courseService;
 
-        public CourseController(CourseService courseService)
+        public CourseController(ICourseService courseService)
         {
             _courseService = courseService;
         }
