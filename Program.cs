@@ -16,6 +16,10 @@ using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Modules.Interfaces;
 using course_service.Modules.Lesson.Interfaces;
 using course_service.Modules.LessonPart.Interfaces;
+using course_service.Modules.Caching.Interfaces;
+using course_service.Modules.Caching.Services;
+using course_service.Shared.Interfaces;
+using course_service.Shared.Services;
 
 namespace APIWithControllers;
 
@@ -34,7 +38,6 @@ public class Program
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseMySql(connectionString, serverVersion));
 
-        builder.Services.AddControllers();
 
         // Register Swagger for API documentation
         builder.Services.AddEndpointsApiExplorer();
@@ -54,6 +57,16 @@ public class Program
         builder.Services.AddSingleton<IRMQService, RMQService>();
         builder.Services.AddSingleton<IRMQAuthService, RMQAuthService>();
 
+        // Register redis cache service
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            string redisHost = Env.GetString("REDIS_HOST");
+            string redisPort = Env.GetString("REDIS_PORT");
+            string redisPassword = Env.GetString("REDIS_PASSWORD");
+            options.Configuration = $"{redisHost}:{redisPort},password={redisPassword}";
+            options.InstanceName = "course_service_cache:";
+        });
+
         // Register services
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ICourseService, CourseService>();
@@ -61,11 +74,19 @@ public class Program
         builder.Services.AddScoped<ILessonService, LessonService>();
         builder.Services.AddScoped<ILessonPartService, LessonPartService>();
 
+        // Register shared services
+        builder.Services.AddScoped<ICacheManager, CacheManager>();
+
+        // Register caching services
+        builder.Services.AddScoped<ICourseCachingService, CourseCachingService>();
+
+        // Register controllers
+        builder.Services.AddControllers();
+
         var app = builder.Build();
 
         // Initialize RabbitMQ service to ensure queue creation
         var rmqService = app.Services.GetRequiredService<IRMQService>();
-
 
         // Configure Swagger for API documentation
         if (app.Environment.IsDevelopment())

@@ -23,10 +23,42 @@ public static class CourseMapper
             CourseDescription = courseEntity.CourseDescription,
             Level = courseEntity.Level,
             CourseImageUrl = courseEntity.CourseImageUrl,
-            Category = courseEntity.Category,
+            Category = courseEntity.Category ?? throw new InvalidOperationException("Course category cannot be null"),
             CreatedAt = courseEntity.CreatedAt,
             UpdatedAt = courseEntity.UpdatedAt,
-            DeletedAt = courseEntity.DeletedAt
+            DeletedAt = courseEntity.DeletedAt,
+            IsActive = courseEntity.IsActive,
+            IsDeleted = courseEntity.IsDeleted,
+            ModuleCount = 0,
+            LessonCount = 0
+        };
+    }
+
+    static public CourseDto MapToDto(this CourseEntity courseEntity, int moduleCount, int lessonCount)
+    {
+        if (courseEntity == null)
+        {
+            throw new ArgumentNullException(nameof(courseEntity), "Course entity cannot be null");
+        }
+        if (courseEntity.CourseId == Guid.Empty)
+        {
+            throw new ArgumentException("CourseId cannot be empty", nameof(courseEntity));
+        }
+        return new CourseDto
+        {
+            CourseId = courseEntity.CourseId,
+            CourseName = courseEntity.CourseName,
+            CourseDescription = courseEntity.CourseDescription,
+            Level = courseEntity.Level,
+            CourseImageUrl = courseEntity.CourseImageUrl,
+            Category = courseEntity.Category ?? throw new InvalidOperationException("Course category cannot be null"),
+            CreatedAt = courseEntity.CreatedAt,
+            UpdatedAt = courseEntity.UpdatedAt,
+            DeletedAt = courseEntity.DeletedAt,
+            IsActive = courseEntity.IsActive,
+            IsDeleted = courseEntity.IsDeleted,
+            ModuleCount = moduleCount,
+            LessonCount = lessonCount
         };
     }
 }

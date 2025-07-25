@@ -12,4 +12,6 @@ public class CourseDto : BaseDto
     public CourseLevel Level { get; set; } = CourseLevel.Beginner;
     public string? CourseImageUrl { get; set; }
     public required CategoryEntity Category { get; set; }
+    public int ModuleCount { get; set; } = 0;
+    public int LessonCount { get; set; } = 0;
 }

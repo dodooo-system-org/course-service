@@ -19,10 +19,10 @@ namespace course_service.Modules.Course.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAllCourses()
+        [RequireAdmin]
+        public async Task<IActionResult> GetAllCourses([FromQuery] AllCourseQueryDto queryDto)
         {
-            var courses = await _courseService.GetAllCoursesAsync();
+            var courses = await _courseService.GetAllCoursesAsync(queryDto);
             return Ok(courses);
         }
 

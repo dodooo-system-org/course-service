@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using course_service.Data;
 
@@ -11,9 +12,11 @@ using course_service.Data;
 namespace course_service.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250725040354_Migration_Jul_25")]
+    partial class Migration_Jul_25
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,9 +305,6 @@ namespace course_service.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("module_id");
 
-                    b.Property<Guid?>("CourseEntityCourseId")
-                        .HasColumnType("char(36)");
-
                     b.Property<Guid?>("CourseId")
                         .HasColumnType("char(36)")
                         .HasColumnName("course_id");
@@ -345,8 +345,6 @@ namespace course_service.Migrations
 
                     b.HasKey("ModuleId");
 
-                    b.HasIndex("CourseEntityCourseId");
-
                     b.HasIndex("CourseId");
 
                     b.HasIndex("Order")
@@ -379,7 +377,7 @@ namespace course_service.Migrations
             modelBuilder.Entity("course_service.Data.Entities.LessonEntity", b =>
                 {
                     b.HasOne("course_service.Data.Entities.ModuleEntity", "Module")
-                        .WithMany("Lessons")
+                        .WithMany()
                         .HasForeignKey("ModuleId");
 
                     b.Navigation("Module");
@@ -396,26 +394,12 @@ namespace course_service.Migrations
 
             modelBuilder.Entity("course_service.Data.Entities.ModuleEntity", b =>
                 {
-                    b.HasOne("course_service.Data.Entities.CourseEntity", null)
-                        .WithMany("Modules")
-                        .HasForeignKey("CourseEntityCourseId");
-
                     b.HasOne("course_service.Data.Entities.CourseEntity", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("course_service.Data.Entities.CourseEntity", b =>
-                {
-                    b.Navigation("Modules");
-                });
-
-            modelBuilder.Entity("course_service.Data.Entities.ModuleEntity", b =>
-                {
-                    b.Navigation("Lessons");
                 });
 #pragma warning restore 612, 618
         }

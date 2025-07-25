@@ -12,15 +12,15 @@ using course_service.Data;
 namespace course_service.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250624090301_NewMigration")]
-    partial class NewMigration
+    [Migration("20250725051337_Migration_Jul_25_2.1")]
+    partial class Migration_Jul_25_21
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -54,6 +54,14 @@ namespace course_service.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime")
                         .HasColumnName("deleted_at");
+
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -105,6 +113,14 @@ namespace course_service.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("deleted_at");
 
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
+
                     b.Property<int>("Level")
                         .HasColumnType("int")
                         .HasColumnName("level");
@@ -143,6 +159,14 @@ namespace course_service.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("deleted_at");
 
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
+
                     b.Property<decimal>("Progress")
                         .HasColumnType("decimal(5, 2)")
                         .HasColumnName("progress");
@@ -180,6 +204,14 @@ namespace course_service.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("int")
                         .HasColumnName("duration");
+
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("LessonDescription")
                         .IsRequired()
@@ -225,6 +257,14 @@ namespace course_service.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("deleted_at");
 
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
+
                     b.Property<Guid?>("LessonId")
                         .HasColumnType("char(36)")
                         .HasColumnName("lesson_id");
@@ -265,6 +305,9 @@ namespace course_service.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("module_id");
 
+                    b.Property<Guid?>("CourseEntityCourseId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid?>("CourseId")
                         .HasColumnType("char(36)")
                         .HasColumnName("course_id");
@@ -276,6 +319,14 @@ namespace course_service.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime")
                         .HasColumnName("deleted_at");
+
+                    b.Property<sbyte>("IsActive")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_active");
+
+                    b.Property<sbyte>("IsDeleted")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("ModuleDescription")
                         .IsRequired()
@@ -296,6 +347,8 @@ namespace course_service.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("ModuleId");
+
+                    b.HasIndex("CourseEntityCourseId");
 
                     b.HasIndex("CourseId");
 
@@ -329,7 +382,7 @@ namespace course_service.Migrations
             modelBuilder.Entity("course_service.Data.Entities.LessonEntity", b =>
                 {
                     b.HasOne("course_service.Data.Entities.ModuleEntity", "Module")
-                        .WithMany()
+                        .WithMany("Lessons")
                         .HasForeignKey("ModuleId");
 
                     b.Navigation("Module");
@@ -346,12 +399,26 @@ namespace course_service.Migrations
 
             modelBuilder.Entity("course_service.Data.Entities.ModuleEntity", b =>
                 {
+                    b.HasOne("course_service.Data.Entities.CourseEntity", null)
+                        .WithMany("Modules")
+                        .HasForeignKey("CourseEntityCourseId");
+
                     b.HasOne("course_service.Data.Entities.CourseEntity", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("course_service.Data.Entities.CourseEntity", b =>
+                {
+                    b.Navigation("Modules");
+                });
+
+            modelBuilder.Entity("course_service.Data.Entities.ModuleEntity", b =>
+                {
+                    b.Navigation("Lessons");
                 });
 #pragma warning restore 612, 618
         }

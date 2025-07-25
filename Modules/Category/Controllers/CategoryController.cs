@@ -1,8 +1,7 @@
 using course_service.Attributes;
 using course_service.Modules.Category.DTOs;
-using course_service.Modules.Category.Services;
+using course_service.Modules.Category.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace course_service.Modules.Category.Controllers
@@ -11,9 +10,9 @@ namespace course_service.Modules.Category.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly CategoryService _categoryService;
+        private readonly ICategoryService _categoryService;
 
-        public CategoryController(CategoryService categoryService)
+        public CategoryController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
         }

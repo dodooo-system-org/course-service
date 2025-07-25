@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using course_service.Data.Entities;
 using course_service.Modules.Modules.DTOs;
-using course_service.Modules.Modules.Services;
 using course_service.Attributes;
+using course_service.Modules.Modules.Interfaces;
 
 namespace course_service.Modules.Modules.Controllers
 {
@@ -13,9 +11,9 @@ namespace course_service.Modules.Modules.Controllers
     [ApiController]
     public class ModuleController : ControllerBase
     {
-        private readonly ModuleService _moduleService;
+        private readonly IModuleService _moduleService;
 
-        public ModuleController(ModuleService moduleService)
+        public ModuleController(IModuleService moduleService)
         {
             _moduleService = moduleService;
         }

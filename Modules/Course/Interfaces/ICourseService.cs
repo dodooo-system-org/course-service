@@ -8,6 +8,6 @@ public interface ICourseService
 {
     Task<CourseEntity> CreateCourseAsync(CreateCourseDto course);
     Task<CourseDto> GetCourseByIdAsync(Guid courseId);
-    Task<List<CourseDto>> GetAllCoursesAsync();
+    Task<List<CourseDto>> GetAllCoursesAsync(AllCourseQueryDto queryDto);
     Task<CourseDto> UpdateCourseAsync(Guid courseId, UpdateCourseDto course);
 }

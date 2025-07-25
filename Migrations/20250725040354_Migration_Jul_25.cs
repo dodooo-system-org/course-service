@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace course_service.Migrations
 {
     /// <inheritdoc />
-    public partial class NewMigration : Migration
+    public partial class Migration_Jul_25 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,8 @@ namespace course_service.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     status = table.Column<string>(type: "varchar(20)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -50,6 +52,8 @@ namespace course_service.Migrations
                     course_image_url = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     category_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -75,6 +79,8 @@ namespace course_service.Migrations
                     course_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     progress = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     completion_date = table.Column<DateTime>(type: "datetime", nullable: true),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -102,6 +108,8 @@ namespace course_service.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     order = table.Column<decimal>(type: "decimal(10,5)", nullable: false),
                     course_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -130,6 +138,8 @@ namespace course_service.Migrations
                     order = table.Column<decimal>(type: "decimal(10,5)", nullable: false),
                     duration = table.Column<int>(type: "int", nullable: false),
                     module_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -158,6 +168,8 @@ namespace course_service.Migrations
                     lesson_video_url = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     lesson_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    is_active = table.Column<sbyte>(type: "tinyint", nullable: false),
+                    is_deleted = table.Column<sbyte>(type: "tinyint", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "datetime", nullable: true)
@@ -209,11 +221,23 @@ namespace course_service.Migrations
                 table: "Modules",
                 column: "order",
                 unique: true);
+
+            // Add FULLTEXT index for course name search
+            migrationBuilder.Sql(@"
+                ALTER TABLE Courses
+                ADD FULLTEXT INDEX idx_CourseName (course_name);
+            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Drop FULLTEXT index
+            migrationBuilder.Sql(@"
+                ALTER TABLE Courses
+                DROP INDEX idx_CourseName;
+            ");
+
             migrationBuilder.DropTable(
                 name: "Enrollments");
 

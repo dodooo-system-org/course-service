@@ -1,13 +1,18 @@
 using System;
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Caching.Interfaces;
+using course_service.Modules.Caching.Services;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Category.Services;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Interfaces;
 using course_service.Modules.Course.Services;
+using course_service.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Moq;
 
 namespace course_service.tests;
 
@@ -16,6 +21,7 @@ public class CourseServiceTests : IDisposable
     private readonly AppDbContext _context;
     private readonly ICourseService _courseService;
     private readonly ICategoryService _categoryService;
+    private readonly ICourseCachingService _courseCachingService;
     public CourseServiceTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -23,7 +29,9 @@ public class CourseServiceTests : IDisposable
             .Options;
         _context = new AppDbContext(options);
         _categoryService = new CategoryService(_context);
-        _courseService = new CourseService(_context, _categoryService);
+
+        _courseCachingService = new CourseCachingService(new Mock<IDistributedCache>().Object, new Mock<ICacheManager>().Object);
+        _courseService = new CourseService(_context, _categoryService, _courseCachingService);
     }
 
     public void Dispose()
@@ -119,7 +127,7 @@ public class CourseServiceTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var courses = await _courseService.GetAllCoursesAsync();
+        var courses = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
 
         // Assert
         Assert.NotNull(courses);
@@ -134,7 +142,7 @@ public class CourseServiceTests : IDisposable
         // Arrange
         // Ensure the database of courses is empty
         // Act
-        var courses = await _courseService.GetAllCoursesAsync();
+        var courses = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
 
         // Assert
         Assert.NotNull(courses);

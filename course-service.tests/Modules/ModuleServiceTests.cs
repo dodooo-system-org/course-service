@@ -1,6 +1,8 @@
 using System;
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Caching.Interfaces;
+using course_service.Modules.Caching.Services;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Category.Services;
@@ -11,7 +13,10 @@ using course_service.Modules.Modules.DTOs;
 using course_service.Modules.Modules.Interfaces;
 using course_service.Modules.Modules.Services;
 using course_service.Shared.Helpers;
+using course_service.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Moq;
 using Xunit;
 
 namespace course_service.tests.Modules;
@@ -22,6 +27,7 @@ public class ModuleServiceTests : IDisposable
     private readonly IModuleService _moduleService;
     private readonly ICourseService _courseService;
     private readonly ICategoryService _categoryService;
+    private readonly ICourseCachingService _courseCachingService;
 
     public ModuleServiceTests()
     {
@@ -34,7 +40,8 @@ public class ModuleServiceTests : IDisposable
 
         _context = new AppDbContext(options);
         _categoryService = new CategoryService(_context);
-        _courseService = new CourseService(_context, _categoryService);
+        _courseCachingService = new CourseCachingService(new Mock<IDistributedCache>().Object, new Mock<ICacheManager>().Object);
+        _courseService = new CourseService(_context, _categoryService, _courseCachingService);
         _moduleService = new ModuleService(_context, _courseService);
     }
 
