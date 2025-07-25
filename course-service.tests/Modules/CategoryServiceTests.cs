@@ -4,6 +4,7 @@ using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Category.Services;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace course_service.tests;
 
@@ -91,7 +92,7 @@ public class CategoryServiceTests : IDisposable
         // Arrange
         var createCategoryDto = new CreateCategoryDto
         {
-            CategoryName = null, // Invalid category name
+            CategoryName = null!, // Invalid category name
             CategoryDescription = "This is a test category.",
             CategoryImageUrl = "http://example.com/image.jpg"
         };
@@ -109,7 +110,7 @@ public class CategoryServiceTests : IDisposable
         var createCategoryDto = new CreateCategoryDto
         {
             CategoryName = "Test category",
-            CategoryDescription = null, // Invalid category description
+            CategoryDescription = null!, // Invalid category description
             CategoryImageUrl = "http://example.com/image.jpg"
         };
 
@@ -127,7 +128,7 @@ public class CategoryServiceTests : IDisposable
         {
             CategoryName = "Test category",
             CategoryDescription = "This is a test category.",
-            CategoryImageUrl = null // Invalid category image URL
+            CategoryImageUrl = null! // Invalid category image URL
         };
 
         // Act & Assert

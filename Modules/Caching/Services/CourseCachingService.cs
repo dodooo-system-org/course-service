@@ -1,6 +1,7 @@
 using System;
 using course_service.Modules.Caching.Interfaces;
 using course_service.Modules.Course.DTOs;
+using course_service.Shared.DTOs;
 using course_service.Shared.Helpers;
 using course_service.Shared.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
@@ -24,11 +25,11 @@ public class CourseCachingService : ICourseCachingService
         _cache = cache;
         _logger = LoggerHelper.GetLogger<CourseCachingService>();
     }
-    public async Task<bool?> CacheAllCoursesAsync(List<CourseDto> courses, string unique)
+    public async Task<bool?> CacheAllCoursesAsync(MetaPaginationDto<List<CourseDto>> result, string unique)
     {
         try
         {
-            var serializedCourses = JsonConvert.SerializeObject(courses);
+            var serializedCourses = JsonConvert.SerializeObject(result);
             // Cache courses for 1 hour
             var cacheOptions = new DistributedCacheEntryOptions
             {
@@ -44,7 +45,7 @@ public class CourseCachingService : ICourseCachingService
         }
     }
 
-    public async Task<List<CourseDto>?> GetAllCoursesFromCacheAsync(string unique)
+    public async Task<MetaPaginationDto<List<CourseDto>>?> GetAllCoursesFromCacheAsync(string unique)
     {
         try
         {
@@ -56,7 +57,7 @@ public class CourseCachingService : ICourseCachingService
             }
 
             var cachedCoursesString = System.Text.Encoding.UTF8.GetString(cachedCourses);
-            return JsonConvert.DeserializeObject<List<CourseDto>>(cachedCoursesString);
+            return JsonConvert.DeserializeObject<MetaPaginationDto<List<CourseDto>>>(cachedCoursesString);
         }
         catch (Exception ex)
         {

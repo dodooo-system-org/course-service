@@ -9,10 +9,12 @@ using course_service.Modules.Category.Services;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Interfaces;
 using course_service.Modules.Course.Services;
+using course_service.Shared.DTOs;
 using course_service.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
+using Xunit;
 
 namespace course_service.tests;
 
@@ -127,13 +129,14 @@ public class CourseServiceTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var courses = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
+        var result = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
 
         // Assert
-        Assert.NotNull(courses);
-        Assert.Equal(2, courses.Count);
-        Assert.Contains(courses, c => c.CourseName == "Test Course 1" && c.Category.CategoryId == categoryEntity.CategoryId);
-        Assert.Contains(courses, c => c.CourseName == "Test Course 2" && c.Category.CategoryId == categoryEntity.CategoryId);
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(2, result.Data.Count);
+        Assert.Contains(result.Data, c => c.CourseName == "Test Course 1" && c.Category.CategoryId == categoryEntity.CategoryId);
+        Assert.Contains(result.Data, c => c.CourseName == "Test Course 2" && c.Category.CategoryId == categoryEntity.CategoryId);
     }
 
     [Fact]
@@ -142,11 +145,12 @@ public class CourseServiceTests : IDisposable
         // Arrange
         // Ensure the database of courses is empty
         // Act
-        var courses = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
+        var result = await _courseService.GetAllCoursesAsync(new AllCourseQueryDto());
 
         // Assert
-        Assert.NotNull(courses);
-        Assert.Empty(courses);
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+        Assert.Empty(result.Data);
     }
     #endregion
 

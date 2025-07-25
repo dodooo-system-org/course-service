@@ -5,6 +5,7 @@ using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Course.DTOs;
 using course_service.Modules.Course.Interfaces;
 using course_service.Modules.Course.Mappers;
+using course_service.Shared.DTOs;
 using course_service.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -59,7 +60,7 @@ public class CourseService : ICourseService
         }
     }
 
-    public async Task<List<CourseDto>> GetAllCoursesAsync(AllCourseQueryDto queryDto)
+    public async Task<MetaPaginationDto<List<CourseDto>>> GetAllCoursesAsync(AllCourseQueryDto queryDto)
     {
         try
         {
@@ -118,12 +119,26 @@ public class CourseService : ICourseService
             })
             .ToListAsync();
 
+            int totalCount = await query.CountAsync();
+
             var courses = coursesWithCounts.Select(x => x.Course.MapToDto(x.ModuleCount, x.LessonCount)).ToList();
 
-            // Cache the courses
-            await _courseCachingService.CacheAllCoursesAsync(courses, unique);
 
-            return courses;
+            var result = new MetaPaginationDto<List<CourseDto>>
+            {
+                Meta = new MetaDto
+                {
+                    Page = queryDto.Page,
+                    Size = queryDto.Size,
+                    TotalCount = totalCount
+                },
+                Data = courses
+            };
+
+            // Cache the courses
+            await _courseCachingService.CacheAllCoursesAsync(result, unique);
+
+            return result;
         }
         catch (Exception error)
         {
