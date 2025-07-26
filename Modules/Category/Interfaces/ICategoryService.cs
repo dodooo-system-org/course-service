@@ -11,4 +11,5 @@ public interface ICategoryService
     Task<CategoryEntity> GetOneAsync(Guid id);
     Task<IEnumerable<CategoryEntity>> GetListAsync();
     Task<CategoryEntity> UpdateOneAsync(Guid id, UpdateCategoryDto category);
+    Task<IEnumerable<CategoryEntity>> GetAvailableCategoriesAsync();
 }

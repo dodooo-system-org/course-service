@@ -108,4 +108,19 @@ public class CategoryService : ICategoryService
             throw ServiceErrorHelper.GenerateErrorService(error, "Failed to update category");
         }
     }
+
+    public async Task<IEnumerable<CategoryEntity>> GetAvailableCategoriesAsync()
+    {
+        try
+        {
+            var availableCategories = await _context.Categories
+                .Where(c => c.IsActive == true).ToListAsync();
+            return availableCategories;
+        }
+        catch (Exception error)
+        {
+            _logger.LogError(error, "Get available categories failed");
+            throw ServiceErrorHelper.GenerateErrorService(error, "Failed to get available categories");
+        }
+    }
 }

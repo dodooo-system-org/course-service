@@ -25,6 +25,14 @@ namespace course_service.Modules.Category.Controllers
             return Ok(newCategory);
         }
 
+        [HttpGet("available")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAvailableCategoriesAsync()
+        {
+            var categories = await _categoryService.GetAvailableCategoriesAsync();
+            return Ok(categories);
+        }
+
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetOneAsync([FromRoute] Guid id)
@@ -48,5 +56,7 @@ namespace course_service.Modules.Category.Controllers
             var updatedCategory = await _categoryService.UpdateOneAsync(id, category);
             return Ok(updatedCategory);
         }
+
+
     }
 }

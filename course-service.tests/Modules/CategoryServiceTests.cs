@@ -297,4 +297,107 @@ public class CategoryServiceTests : IDisposable
         Assert.Equal("Category not found", exception.Message);
     }
     #endregion
+
+    #region GetAvailableCategoriesAsync
+    [Fact]
+    public async Task GetAvailableCategoriesAsync_WithActiveCategories_ReturnsActiveCategoriesOnly()
+    {
+        // Arrange
+        var activeCategory1 = new CategoryEntity
+        {
+            CategoryId = Guid.NewGuid(),
+            CategoryName = "Active Category 1",
+            CategoryDescription = "This is an active category.",
+            CategoryImageUrl = "http://example.com/active1.jpg",
+            Status = CategoryStatus.Active,
+            IsActive = true
+        };
+
+        var activeCategory2 = new CategoryEntity
+        {
+            CategoryId = Guid.NewGuid(),
+            CategoryName = "Active Category 2",
+            CategoryDescription = "This is another active category.",
+            CategoryImageUrl = "http://example.com/active2.jpg",
+            Status = CategoryStatus.Active,
+            IsActive = true
+        };
+
+        var inactiveCategory = new CategoryEntity
+        {
+            CategoryId = Guid.NewGuid(),
+            CategoryName = "Inactive Category",
+            CategoryDescription = "This is an inactive category.",
+            CategoryImageUrl = "http://example.com/inactive.jpg",
+            Status = CategoryStatus.Active,
+            IsActive = false
+        };
+
+        _context.Categories.AddRange(activeCategory1, activeCategory2, inactiveCategory);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _categoryService.GetAvailableCategoriesAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        var resultList = result.ToList();
+        Assert.Equal(2, resultList.Count);
+        Assert.All(resultList, category => Assert.True(category.IsActive));
+        Assert.Contains(resultList, c => c.CategoryId == activeCategory1.CategoryId);
+        Assert.Contains(resultList, c => c.CategoryId == activeCategory2.CategoryId);
+        Assert.DoesNotContain(resultList, c => c.CategoryId == inactiveCategory.CategoryId);
+    }
+
+    [Fact]
+    public async Task GetAvailableCategoriesAsync_WithNoActiveCategories_ReturnsEmptyList()
+    {
+        // Arrange
+        var inactiveCategory1 = new CategoryEntity
+        {
+            CategoryId = Guid.NewGuid(),
+            CategoryName = "Inactive Category 1",
+            CategoryDescription = "This is an inactive category.",
+            CategoryImageUrl = "http://example.com/inactive1.jpg",
+            Status = CategoryStatus.Suspending,
+            IsActive = false
+        };
+
+        var inactiveCategory2 = new CategoryEntity
+        {
+            CategoryId = Guid.NewGuid(),
+            CategoryName = "Inactive Category 2",
+            CategoryDescription = "This is another inactive category.",
+            CategoryImageUrl = "http://example.com/inactive2.jpg",
+            Status = CategoryStatus.Active,
+            IsActive = false
+        };
+
+        _context.Categories.AddRange(inactiveCategory1, inactiveCategory2);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _categoryService.GetAvailableCategoriesAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        var resultList = result.ToList();
+        Assert.Empty(resultList);
+    }
+
+    [Fact]
+    public async Task GetAvailableCategoriesAsync_WithEmptyDatabase_ReturnsEmptyList()
+    {
+        // Arrange
+        // No categories added to the database
+
+        // Act
+        var result = await _categoryService.GetAvailableCategoriesAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        var resultList = result.ToList();
+        Assert.Empty(resultList);
+    }
+    #endregion
 }
