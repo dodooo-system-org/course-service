@@ -48,7 +48,8 @@ public class LessonPartServiceTests : IDisposable
             .Options;
 
         _context = new AppDbContext(options);
-        _categoryService = new CategoryService(_context);
+        var mockCategoryCaching = new Mock<ICategoryCachingService>();
+        _categoryService = new CategoryService(_context, mockCategoryCaching.Object);
         _courseCachingService = new CourseCachingService(new Mock<IDistributedCache>().Object, new Mock<ICacheManager>().Object);
         _courseService = new CourseService(_context, _categoryService, _courseCachingService);
         _moduleService = new ModuleService(_context, _courseService);

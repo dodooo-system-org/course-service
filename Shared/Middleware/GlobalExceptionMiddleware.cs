@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Text.Json;
+using course_service.Shared.Exceptions;
 
 namespace course_service.Shared.Middleware
 {
@@ -24,6 +25,8 @@ namespace course_service.Shared.Middleware
                     return (int)HttpStatusCode.NotFound;
                 case InvalidOperationException:
                     return (int)HttpStatusCode.Conflict;
+                case ForbiddenAccessException:
+                    return (int)HttpStatusCode.Forbidden;
                 default:
                     return (int)HttpStatusCode.InternalServerError;
             }

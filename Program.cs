@@ -79,6 +79,7 @@ public class Program
 
         // Register caching services
         builder.Services.AddScoped<ICourseCachingService, CourseCachingService>();
+        builder.Services.AddScoped<ICategoryCachingService, CategoryCachingService>();
 
         // Register controllers
         builder.Services.AddControllers();

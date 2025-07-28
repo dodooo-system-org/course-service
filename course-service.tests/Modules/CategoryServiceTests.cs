@@ -1,9 +1,12 @@
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Caching.Interfaces;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
 using course_service.Modules.Category.Services;
+using course_service.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace course_service.tests;
@@ -12,6 +15,8 @@ public class CategoryServiceTests : IDisposable
 {
     private readonly AppDbContext _context;
     private readonly ICategoryService _categoryService;
+    private readonly Mock<ICategoryCachingService> _mockCachingService;
+
     public CategoryServiceTests()
     {
         // Disable logging for tests
@@ -22,7 +27,8 @@ public class CategoryServiceTests : IDisposable
             .Options;
 
         _context = new AppDbContext(options);
-        _categoryService = new CategoryService(_context);
+        _mockCachingService = new Mock<ICategoryCachingService>();
+        _categoryService = new CategoryService(_context, _mockCachingService.Object);
     }
 
     // Dispose the context after tests
@@ -187,7 +193,7 @@ public class CategoryServiceTests : IDisposable
 
     #region GetAllAsync
     [Fact]
-    public async Task GetAllAsync_ReturnsAllCategories()
+    public async Task GetListAsync_WithValidPagination_ReturnsAllCategories()
     {
         // Arrange
         var category1 = new CategoryEntity
@@ -205,28 +211,58 @@ public class CategoryServiceTests : IDisposable
         _context.Categories.AddRange(category1, category2);
         await _context.SaveChangesAsync();
 
+        var paginationDto = new PaginationDto
+        {
+            Page = 1,
+            Size = 10
+        };
+
+        // Setup caching service mock
+        _mockCachingService.Setup(x => x.GetListAllCategoriesAsync(It.IsAny<string>()))
+            .ReturnsAsync((MetaPaginationDto<List<CategoryEntity>>?)null);
+        _mockCachingService.Setup(x => x.CacheListAllCategoriesAsync(It.IsAny<MetaPaginationDto<List<CategoryEntity>>>(), It.IsAny<string>()))
+            .ReturnsAsync((bool?)true);
+
         // Act
-        var result = await _categoryService.GetListAsync();
+        var result = await _categoryService.GetListAsync(paginationDto);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, c => c.CategoryName == category1.CategoryName);
-        Assert.Contains(result, c => c.CategoryName == category2.CategoryName);
+        Assert.NotNull(result.Data);
+        Assert.Equal(2, result.Data.Count);
+        Assert.Contains(result.Data, c => c.CategoryName == category1.CategoryName);
+        Assert.Contains(result.Data, c => c.CategoryName == category2.CategoryName);
+        Assert.Equal(1, result.Meta.Page);
+        Assert.Equal(10, result.Meta.Size);
+        Assert.Equal(2, result.Meta.TotalCount);
     }
 
     [Fact]
-    public async Task GetAllAsync_NoCategories_ReturnsEmptyList()
+    public async Task GetListAsync_NoCategories_ReturnsEmptyList()
     {
         // Arrange
-        // No categories added to the context
+        var paginationDto = new PaginationDto
+        {
+            Page = 1,
+            Size = 10
+        };
+
+        // Setup caching service mock
+        _mockCachingService.Setup(x => x.GetListAllCategoriesAsync(It.IsAny<string>()))
+            .ReturnsAsync((MetaPaginationDto<List<CategoryEntity>>?)null);
+        _mockCachingService.Setup(x => x.CacheListAllCategoriesAsync(It.IsAny<MetaPaginationDto<List<CategoryEntity>>>(), It.IsAny<string>()))
+            .ReturnsAsync((bool?)true);
 
         // Act
-        var result = await _categoryService.GetListAsync();
+        var result = await _categoryService.GetListAsync(paginationDto);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Empty(result);
+        Assert.NotNull(result.Data);
+        Assert.Empty(result.Data);
+        Assert.Equal(1, result.Meta.Page);
+        Assert.Equal(10, result.Meta.Size);
+        Assert.Equal(0, result.Meta.TotalCount);
     }
     #endregion
 

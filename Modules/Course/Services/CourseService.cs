@@ -89,9 +89,14 @@ public class CourseService : ICourseService
                 query = query.Where(c => c.IsActive == queryDto.IsActive);
             }
 
-            if (queryDto.IsDeleted != null)
+            // if the IsDeleted filter is not provided, default to false - just show not deleted courses
+            if (queryDto.IsDeleted == true)
             {
                 query = query.Where(c => c.IsDeleted == queryDto.IsDeleted);
+            }
+            else
+            {
+                query = query.Where(c => c.IsDeleted != true);
             }
 
             if (!String.IsNullOrEmpty(queryDto.Query))

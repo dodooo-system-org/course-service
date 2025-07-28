@@ -1,6 +1,7 @@
 using course_service.Attributes;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
+using course_service.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,10 +43,10 @@ namespace course_service.Modules.Category.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetListAsync()
+        [RequireAdmin]
+        public async Task<IActionResult> GetListAsync([FromQuery] PaginationDto pagination)
         {
-            var categories = await _categoryService.GetListAsync();
+            var categories = await _categoryService.GetListAsync(pagination);
             return Ok(categories);
         }
 

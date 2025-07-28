@@ -1,10 +1,13 @@
 using System;
 using course_service.Data;
 using course_service.Data.Entities;
+using course_service.Modules.Caching.Interfaces;
 using course_service.Modules.Category.DTOs;
 using course_service.Modules.Category.Interfaces;
+using course_service.Shared.DTOs;
 using course_service.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace course_service.Modules.Category.Services;
 
@@ -12,10 +15,12 @@ public class CategoryService : ICategoryService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<CategoryService> _logger;
-    public CategoryService(AppDbContext context)
+    private readonly ICategoryCachingService _categoryCachingService;
+    public CategoryService(AppDbContext context, ICategoryCachingService categoryCachingService)
     {
         _context = context;
         _logger = LoggerHelper.GetLogger<CategoryService>();
+        _categoryCachingService = categoryCachingService;
     }
     public async Task<CategoryEntity> CreateOneAsync(CreateCategoryDto category)
     {
@@ -37,6 +42,8 @@ public class CategoryService : ICategoryService
             };
             _context.Categories.Add(newCategory);
             await _context.SaveChangesAsync();
+
+            _categoryCachingService.RemoveListAllCategoriesAsync();
             return newCategory;
         }
         catch (Exception error)
@@ -68,11 +75,42 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<IEnumerable<CategoryEntity>> GetListAsync()
+    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(PaginationDto pagination)
     {
         try
         {
-            return await Task.FromResult(_context.Categories.ToList());
+            string unique = JsonConvert.SerializeObject(pagination).ToString();
+            var cachedCategories = await _categoryCachingService.GetListAllCategoriesAsync(unique);
+            if (cachedCategories != null)
+            {
+                return cachedCategories;
+            }
+            var query = _context.Categories.AsQueryable();
+            if (pagination.Query != null)
+            {
+                query = query.Where(c => EF.Functions.Like(c.CategoryName, $"%{pagination.Query}%"));
+            }
+            var totalCount = await query.CountAsync();
+            var categories = await query
+                .OrderBy(c => c.UpdatedAt)
+                .OrderBy(c => c.CreatedAt)
+                .Skip((pagination.Page - 1) * pagination.Size)
+                .Take(pagination.Size)
+                .ToListAsync();
+            var metaPagination = new MetaPaginationDto<List<CategoryEntity>>
+            {
+                Data = categories,
+                Meta = new MetaDto
+                {
+                    Page = pagination.Page,
+                    Size = pagination.Size,
+                    TotalCount = totalCount,
+                }
+            };
+
+            // Cache the result
+            await _categoryCachingService.CacheListAllCategoriesAsync(metaPagination, unique);
+            return metaPagination;
         }
         catch (Exception error)
         {
@@ -100,6 +138,9 @@ public class CategoryService : ICategoryService
             existingCategory.Status = category.Status;
             existingCategory.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+
+            // Clear cache
+            _categoryCachingService.RemoveListAllCategoriesAsync();
             return existingCategory;
         }
         catch (Exception error)
@@ -113,8 +154,18 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            var cachedAvailableCategories = await _categoryCachingService.GetListAvailableCategoriesAsync();
+            if (cachedAvailableCategories != null)
+            {
+                return cachedAvailableCategories;
+            }
+            // Fetch from database if not cached
             var availableCategories = await _context.Categories
-                .Where(c => c.IsActive == true).ToListAsync();
+                .Where(c => c.IsActive == true && c.IsDeleted != true).ToListAsync();
+
+            // Cache the available categories
+            await _categoryCachingService.CacheListAvailableCategoriesAsync(availableCategories);
+
             return availableCategories;
         }
         catch (Exception error)
