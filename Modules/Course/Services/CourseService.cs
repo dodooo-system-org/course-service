@@ -113,6 +113,7 @@ public class CourseService : ICourseService
             var coursesWithCounts = await query
             .Skip((queryDto.Page - 1) * queryDto.Size)
             .Take(queryDto.Size)
+            .OrderBy(c => c.UpdatedAt)
             .Select(c => new
             {
                 Course = c,

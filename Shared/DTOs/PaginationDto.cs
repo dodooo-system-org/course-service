@@ -23,7 +23,7 @@ public class PaginationDto
 
     [JsonPropertyName("query")]
     [StringLength(100, ErrorMessage = "Query cannot exceed 100 characters.")]
-    public string Query { get; set; } = string.Empty;
+    public string? Query { get; set; }
 
     [JsonPropertyName("orderBy")]
     [EnumDataType(typeof(PaginationOrderBy), ErrorMessage = "Invalid order by value.")]
