@@ -21,12 +21,14 @@ public class RMQService : IDisposable, IRMQService
         _logger = LoggerHelper.GetLogger<RMQService>();
 
         Env.Load();
+
         var factory = new ConnectionFactory
         {
             HostName = Env.GetString("RABBITMQ_HOST"),
             Port = Env.GetInt("RABBITMQ_PORT"),
             UserName = Env.GetString("RABBITMQ_USER"),
-            Password = Env.GetString("RABBITMQ_PASSWORD")
+            Password = Env.GetString("RABBITMQ_PASSWORD"),
+            VirtualHost = Env.GetString("RABBITMQ_VIRTUAL_HOST", "/")
         };
 
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
