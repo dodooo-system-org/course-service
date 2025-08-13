@@ -20,6 +20,8 @@ using course_service.Modules.Caching.Interfaces;
 using course_service.Modules.Caching.Services;
 using course_service.Shared.Interfaces;
 using course_service.Shared.Services;
+using AspNetCore.Serilog.RequestLoggingMiddleware;
+using Serilog;
 
 namespace APIWithControllers;
 
@@ -56,6 +58,8 @@ public class Program
         // Register RabbitMQ service
         builder.Services.AddSingleton<IRMQService, RMQService>();
         builder.Services.AddSingleton<IRMQAuthService, RMQAuthService>();
+        // Register Serilog for logging
+        // builder.Services.AddSingleton(Log.Logger);
 
         // Register redis cache service
         builder.Services.AddStackExchangeRedisCache(options =>
@@ -92,6 +96,7 @@ public class Program
         // Configure Swagger for API documentation
         if (app.Environment.IsDevelopment())
         {
+            // app.UseSerilogRequestLogging(); // Log requests in development
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {

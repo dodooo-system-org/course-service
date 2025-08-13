@@ -92,8 +92,8 @@ public class CategoryService : ICategoryService
             }
             var totalCount = await query.CountAsync();
             var categories = await query
-                .OrderBy(c => c.UpdatedAt)
-                .OrderBy(c => c.CreatedAt)
+                .OrderByDescending(c => c.UpdatedAt)
+                .OrderByDescending(c => c.CreatedAt)
                 .Skip((pagination.Page - 1) * pagination.Size)
                 .Take(pagination.Size)
                 .ToListAsync();
