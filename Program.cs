@@ -22,6 +22,8 @@ using course_service.Shared.Interfaces;
 using course_service.Shared.Services;
 using AspNetCore.Serilog.RequestLoggingMiddleware;
 using Serilog;
+using course_service.Modules.Upload.Interfaces;
+using course_service.Modules.Upload.Services;
 
 namespace APIWithControllers;
 
@@ -77,6 +79,7 @@ public class Program
         builder.Services.AddScoped<IModuleService, ModuleService>();
         builder.Services.AddScoped<ILessonService, LessonService>();
         builder.Services.AddScoped<ILessonPartService, LessonPartService>();
+        builder.Services.AddScoped<IUploadService, UploadService>();
 
         // Register shared services
         builder.Services.AddScoped<ICacheManager, CacheManager>();
