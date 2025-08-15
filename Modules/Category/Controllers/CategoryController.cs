@@ -44,9 +44,9 @@ namespace course_service.Modules.Category.Controllers
 
         [HttpGet]
         [RequireAdmin]
-        public async Task<IActionResult> GetListAsync([FromQuery] PaginationDto pagination)
+        public async Task<IActionResult> GetListAsync([FromQuery] GetListCategoryDto queries)
         {
-            var categories = await _categoryService.GetListAsync(pagination);
+            var categories = await _categoryService.GetListAsync(queries);
             return Ok(categories);
         }
 

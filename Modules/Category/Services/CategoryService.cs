@@ -43,7 +43,18 @@ public class CategoryService : ICategoryService
             _context.Categories.Add(newCategory);
             await _context.SaveChangesAsync();
 
-            _categoryCachingService.RemoveListAllCategoriesAsync();
+            // Clear cache asynchronously, fire-and-forget
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _categoryCachingService.RemoveListAllCategoriesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to remove category cache asynchronously.");
+                }
+            });
             return newCategory;
         }
         catch (Exception error)
@@ -75,35 +86,49 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(PaginationDto pagination)
+    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(GetListCategoryDto queries)
     {
         try
         {
-            string unique = JsonConvert.SerializeObject(pagination).ToString();
+            string unique = JsonConvert.SerializeObject(queries).ToString();
             var cachedCategories = await _categoryCachingService.GetListAllCategoriesAsync(unique);
             if (cachedCategories != null)
             {
                 return cachedCategories;
             }
             var query = _context.Categories.AsQueryable();
-            if (pagination.Query != null)
+
+            if (queries.IsDeleted == true)
             {
-                query = query.Where(c => EF.Functions.Like(c.CategoryName, $"%{pagination.Query}%"));
+                query = query.Where(c => c.IsDeleted == true);
+            }
+            else if (queries.IsActive != null)
+            {
+                query = query.Where(c => c.IsActive == queries.IsActive && c.IsDeleted != true);
+            }
+            else
+            {
+                query = query.Where(c => c.IsDeleted != true);
+            }
+
+            if (queries.Query != null)
+            {
+                query = query.Where(c => EF.Functions.Like(c.CategoryName, $"%{queries.Query}%"));
             }
             var totalCount = await query.CountAsync();
             var categories = await query
                 .OrderByDescending(c => c.UpdatedAt)
                 .OrderByDescending(c => c.CreatedAt)
-                .Skip((pagination.Page - 1) * pagination.Size)
-                .Take(pagination.Size)
+                .Skip((queries.Page - 1) * queries.Size)
+                .Take(queries.Size)
                 .ToListAsync();
             var metaPagination = new MetaPaginationDto<List<CategoryEntity>>
             {
                 Data = categories,
                 Meta = new MetaDto
                 {
-                    Page = pagination.Page,
-                    Size = pagination.Size,
+                    Page = queries.Page,
+                    Size = queries.Size,
                     TotalCount = totalCount,
                 }
             };
@@ -135,12 +160,13 @@ public class CategoryService : ICategoryService
             existingCategory.CategoryName = category.CategoryName;
             existingCategory.CategoryDescription = category.CategoryDescription;
             existingCategory.CategoryImageUrl = category.CategoryImageUrl;
-            existingCategory.Status = category.Status;
+            existingCategory.IsActive = category.IsActive;
+            existingCategory.IsDeleted = category.IsDeleted;
             existingCategory.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             // Clear cache
-            _categoryCachingService.RemoveListAllCategoriesAsync();
+            await _categoryCachingService.RemoveListAllCategoriesAsync();
             return existingCategory;
         }
         catch (Exception error)

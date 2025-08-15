@@ -10,7 +10,7 @@ public interface ICategoryService
 {
     Task<CategoryEntity> CreateOneAsync(CreateCategoryDto category);
     Task<CategoryEntity> GetOneAsync(Guid id);
-    Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(PaginationDto pagination);
+    Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(GetListCategoryDto pagination);
     Task<CategoryEntity> UpdateOneAsync(Guid id, UpdateCategoryDto category);
     Task<IEnumerable<CategoryEntity>> GetAvailableCategoriesAsync();
 }

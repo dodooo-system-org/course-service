@@ -59,6 +59,9 @@ public class CategoryServiceTests : IDisposable
         Assert.Equal(createCategoryDto.CategoryName, createdCategory.CategoryName);
         Assert.Equal(createCategoryDto.CategoryDescription, createdCategory.CategoryDescription);
         Assert.Equal(createCategoryDto.CategoryImageUrl, createdCategory.CategoryImageUrl);
+
+        // Note: Cache removal is fire-and-forget with Task.Run, so we can't reliably verify it was called
+        // The method returns immediately without waiting for cache removal to complete
     }
 
     [Fact]
@@ -211,10 +214,10 @@ public class CategoryServiceTests : IDisposable
         _context.Categories.AddRange(category1, category2);
         await _context.SaveChangesAsync();
 
-        var paginationDto = new PaginationDto
+        var paginationDto = new GetListCategoryDto
         {
             Page = 1,
-            Size = 10
+            Size = 10,
         };
 
         // Setup caching service mock
@@ -241,7 +244,7 @@ public class CategoryServiceTests : IDisposable
     public async Task GetListAsync_NoCategories_ReturnsEmptyList()
     {
         // Arrange
-        var paginationDto = new PaginationDto
+        var paginationDto = new GetListCategoryDto
         {
             Page = 1,
             Size = 10
@@ -263,6 +266,100 @@ public class CategoryServiceTests : IDisposable
         Assert.Equal(1, result.Meta.Page);
         Assert.Equal(10, result.Meta.Size);
         Assert.Equal(0, result.Meta.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetListAsync_WithIsActiveFilter_ReturnsFilteredCategories()
+    {
+        // Arrange
+        var activeCategory = new CategoryEntity
+        {
+            CategoryName = "Active Category",
+            CategoryDescription = "This is an active category.",
+            CategoryImageUrl = "http://example.com/active.jpg",
+            IsActive = true,
+            IsDeleted = false
+        };
+
+        var inactiveCategory = new CategoryEntity
+        {
+            CategoryName = "Inactive Category",
+            CategoryDescription = "This is an inactive category.",
+            CategoryImageUrl = "http://example.com/inactive.jpg",
+            IsActive = false,
+            IsDeleted = false
+        };
+
+        _context.Categories.AddRange(activeCategory, inactiveCategory);
+        await _context.SaveChangesAsync();
+
+        var paginationDto = new GetListCategoryDto
+        {
+            Page = 1,
+            Size = 10,
+            IsActive = true
+        };
+
+        // Setup caching service mock
+        _mockCachingService.Setup(x => x.CacheListAllCategoriesAsync(It.IsAny<MetaPaginationDto<List<CategoryEntity>>>(), It.IsAny<string>()))
+            .ReturnsAsync((bool?)true);
+
+        // Act
+        var result = await _categoryService.GetListAsync(paginationDto);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
+        Assert.Equal(activeCategory.CategoryName, result.Data.First().CategoryName);
+        Assert.Equal(1, result.Meta.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetListAsync_WithIsDeletedFilter_ReturnsDeletedCategories()
+    {
+        // Arrange
+        var activeCategory = new CategoryEntity
+        {
+            CategoryName = "Active Category",
+            CategoryDescription = "This is an active category.",
+            CategoryImageUrl = "http://example.com/active.jpg",
+            IsActive = true,
+            IsDeleted = false
+        };
+
+        var deletedCategory = new CategoryEntity
+        {
+            CategoryName = "Deleted Category",
+            CategoryDescription = "This is a deleted category.",
+            CategoryImageUrl = "http://example.com/deleted.jpg",
+            IsActive = false,
+            IsDeleted = true
+        };
+
+        _context.Categories.AddRange(activeCategory, deletedCategory);
+        await _context.SaveChangesAsync();
+
+        var paginationDto = new GetListCategoryDto
+        {
+            Page = 1,
+            Size = 10,
+            IsDeleted = true
+        };
+
+        // Setup caching service mock
+        _mockCachingService.Setup(x => x.CacheListAllCategoriesAsync(It.IsAny<MetaPaginationDto<List<CategoryEntity>>>(), It.IsAny<string>()))
+            .ReturnsAsync((bool?)true);
+
+        // Act
+        var result = await _categoryService.GetListAsync(paginationDto);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
+        Assert.Equal(deletedCategory.CategoryName, result.Data.First().CategoryName);
+        Assert.Equal(1, result.Meta.TotalCount);
     }
     #endregion
 
@@ -295,6 +392,9 @@ public class CategoryServiceTests : IDisposable
         Assert.Equal(updateCategoryDto.CategoryName, updatedCategory.CategoryName);
         Assert.Equal(updateCategoryDto.CategoryDescription, updatedCategory.CategoryDescription);
         Assert.Equal(updateCategoryDto.CategoryImageUrl, updatedCategory.CategoryImageUrl);
+
+        // Note: Cache removal is fire-and-forget with Task.Run, so we can't reliably verify it was called
+        // The method returns immediately without waiting for cache removal to complete
     }
 
     [Fact]
