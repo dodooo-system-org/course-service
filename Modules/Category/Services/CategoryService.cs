@@ -152,21 +152,52 @@ public class CategoryService : ICategoryService
             {
                 throw new ArgumentException("Category ID cannot be empty.");
             }
-            var existingCategory = await _context.Categories.FindAsync(id);
+            var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id);
             if (existingCategory == null)
             {
                 throw new KeyNotFoundException("Category not found");
             }
+
+            // Check if this update involves deletion status change
+            bool isDeletionStatusChanged = existingCategory.IsDeleted != category.IsDeleted;
+            bool wasDeleted = existingCategory.IsDeleted;
+
             existingCategory.CategoryName = category.CategoryName;
             existingCategory.CategoryDescription = category.CategoryDescription;
             existingCategory.CategoryImageUrl = category.CategoryImageUrl;
             existingCategory.IsActive = category.IsActive;
             existingCategory.IsDeleted = category.IsDeleted;
             existingCategory.UpdatedAt = DateTime.UtcNow;
+
+            // Set DeletedAt timestamp when marking as deleted
+            if (category.IsDeleted && !wasDeleted)
+            {
+                existingCategory.DeletedAt = DateTime.UtcNow;
+            }
+            else if (!category.IsDeleted && wasDeleted)
+            {
+                existingCategory.DeletedAt = null;
+            }
+
             await _context.SaveChangesAsync();
 
-            // Clear cache
-            await _categoryCachingService.RemoveListAllCategoriesAsync();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _categoryCachingService.RemoveListAllCategoriesAsync();
+
+                    if (isDeletionStatusChanged)
+                    {
+                        await _categoryCachingService.RemoveDeletedCoursesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to remove category caches asynchronously.");
+                }
+            });
+
             return existingCategory;
         }
         catch (Exception error)
@@ -198,6 +229,69 @@ public class CategoryService : ICategoryService
         {
             _logger.LogError(error, "Get available categories failed");
             throw ServiceErrorHelper.GenerateErrorService(error, "Failed to get available categories");
+        }
+    }
+
+    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetDeletedCoursesAsync(GetDeletedCoursesDto dto)
+    {
+        try
+        {
+            // Create unique key for caching based on query parameters
+            string unique = JsonConvert.SerializeObject(dto);
+
+            // Try to get from cache first
+            var cachedDeletedCourses = await _categoryCachingService.GetDeletedCoursesAsync(unique);
+            if (cachedDeletedCourses != null)
+            {
+                return cachedDeletedCourses;
+            }
+
+            // Build query if not in cache
+            var query = _context.Categories.AsQueryable();
+            if (!string.IsNullOrEmpty(dto.Query))
+            {
+                query = query.Where(c => EF.Functions.Like(c.CategoryName, $"%{dto.Query}%"));
+            }
+            if (dto.StartDate.HasValue)
+            {
+                query = query.Where(c => c.DeletedAt >= dto.StartDate.Value);
+            }
+            if (dto.EndDate.HasValue)
+            {
+                query = query.Where(c => c.DeletedAt <= dto.EndDate.Value);
+            }
+
+            query = query.Where(c => c.IsDeleted == true);
+
+            int totalCount = await query.CountAsync();
+
+            var deletedCourses = await query
+                .Skip((dto.Page - 1) * dto.Size)
+                .Take(dto.Size)
+                .OrderBy(c => c.DeletedAt)
+                .ToListAsync();
+
+
+            MetaPaginationDto<List<CategoryEntity>> result = new()
+            {
+                Data = deletedCourses,
+                Meta = new()
+                {
+                    Page = dto.Page,
+                    Size = dto.Size,
+                    TotalCount = totalCount
+                }
+            };
+
+            // Cache the result
+            await _categoryCachingService.CacheDeletedCoursesAsync(result, unique);
+
+            return result;
+        }
+        catch (Exception error)
+        {
+            _logger.LogError(error, "Get deleted courses failed");
+            throw ServiceErrorHelper.GenerateErrorService(error, "Failed to get deleted courses");
         }
     }
 }

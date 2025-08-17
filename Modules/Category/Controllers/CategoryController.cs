@@ -34,6 +34,14 @@ namespace course_service.Modules.Category.Controllers
             return Ok(categories);
         }
 
+        [HttpGet("delete")]
+        [RequireAdmin]
+        public async Task<IActionResult> GetDeletedCourses([FromQuery] GetDeletedCoursesDto dto)
+        {
+            var deletedCourses = await _categoryService.GetDeletedCoursesAsync(dto);
+            return Ok(deletedCourses);
+        }
+
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetOneAsync([FromRoute] Guid id)
@@ -57,6 +65,7 @@ namespace course_service.Modules.Category.Controllers
             var updatedCategory = await _categoryService.UpdateOneAsync(id, category);
             return Ok(updatedCategory);
         }
+
 
 
     }
