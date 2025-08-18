@@ -11,4 +11,5 @@ public interface ICourseService
     Task<CourseDto> GetCourseByIdAsync(Guid courseId);
     Task<MetaPaginationDto<List<CourseDto>>> GetAllCoursesAsync(AllCourseQueryDto queryDto);
     Task<CourseDto> UpdateCourseAsync(Guid courseId, UpdateCourseDto course);
+    Task<MetaPaginationDto<List<CourseDto>>> GetDeletedCoursesAsync(GetDeletedCourseDto queryDto);
 }

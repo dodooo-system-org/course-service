@@ -18,6 +18,7 @@ public class CourseCachingService : ICourseCachingService
     // keys
     private readonly string _allCoursesCacheKey = "all_courses";
     private readonly string _courseDetailsCacheKey = "course_details";
+    private readonly string _deletedCoursesCacheKey = "deleted_courses";
 
     public CourseCachingService(IDistributedCache cache, ICacheManager cacheManager)
     {
@@ -134,4 +135,58 @@ public class CourseCachingService : ICourseCachingService
         }
     }
 
+    public async Task<bool?> CacheDeletedCoursesAsync(MetaPaginationDto<List<CourseDto>> result, string unique)
+    {
+        try
+        {
+            var serializedDeletedCourses = JsonConvert.SerializeObject(result);
+            // Cache deleted courses for 1 day
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+            };
+            await _cache.SetAsync($"{_deletedCoursesCacheKey}:{unique}", System.Text.Encoding.UTF8.GetBytes(serializedDeletedCourses), cacheOptions);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cache deleted courses");
+            return null;
+        }
+    }
+
+    public async Task<MetaPaginationDto<List<CourseDto>>?> GetDeletedCoursesFromCacheAsync(string unique)
+    {
+        try
+        {
+            string cacheKey = $"{_deletedCoursesCacheKey}:{unique}";
+            var cachedDeletedCourses = await _cache.GetAsync(cacheKey);
+            if (cachedDeletedCourses == null || cachedDeletedCourses.Length == 0)
+            {
+                return null;
+            }
+
+            var cachedDeletedCoursesString = System.Text.Encoding.UTF8.GetString(cachedDeletedCourses);
+            return JsonConvert.DeserializeObject<MetaPaginationDto<List<CourseDto>>>(cachedDeletedCoursesString);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve deleted courses from cache");
+            return null;
+        }
+    }
+
+    public async Task<bool?> RemoveDeletedCoursesFromCacheAsync()
+    {
+        try
+        {
+            await _cacheManager.RemoveByPattern($"{_deletedCoursesCacheKey}:*");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove deleted courses from cache");
+            return null;
+        }
+    }
 }

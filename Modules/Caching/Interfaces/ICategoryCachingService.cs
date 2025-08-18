@@ -11,7 +11,7 @@ public interface ICategoryCachingService
     Task<bool?> RemoveListAllCategoriesAsync();
     Task<bool?> CacheListAvailableCategoriesAsync(List<CategoryEntity> result);
     Task<List<CategoryEntity>?> GetListAvailableCategoriesAsync();
-    Task<bool?> CacheDeletedCoursesAsync(MetaPaginationDto<List<CategoryEntity>> result, string unique);
-    Task<MetaPaginationDto<List<CategoryEntity>>?> GetDeletedCoursesAsync(string unique);
-    Task<bool?> RemoveDeletedCoursesAsync();
+    Task<bool?> CacheDeletedCategoriesAsync(MetaPaginationDto<List<CategoryEntity>> result, string unique);
+    Task<MetaPaginationDto<List<CategoryEntity>>?> GetDeletedCategoriesAsync(string unique);
+    Task<bool?> RemoveDeletedCategoriesAsync();
 }

@@ -9,7 +9,7 @@ public class CourseDto : BaseDto
     public Guid CourseId { get; set; } = Guid.NewGuid();
     public string CourseName { get; set; } = string.Empty;
     public string CourseDescription { get; set; } = string.Empty;
-    public CourseLevel Level { get; set; } = CourseLevel.Beginner;
+    public CourseLevel CourseLevel { get; set; } = CourseLevel.Beginner;
     public string? CourseImageUrl { get; set; }
     public required CategoryEntity Category { get; set; }
     public int ModuleCount { get; set; } = 0;

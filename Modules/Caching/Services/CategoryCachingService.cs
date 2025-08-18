@@ -112,7 +112,7 @@ public class CategoryCachingService : ICategoryCachingService
         }
     }
 
-    public async Task<bool?> CacheDeletedCoursesAsync(MetaPaginationDto<List<CategoryEntity>> result, string unique)
+    public async Task<bool?> CacheDeletedCategoriesAsync(MetaPaginationDto<List<CategoryEntity>> result, string unique)
     {
         try
         {
@@ -132,7 +132,7 @@ public class CategoryCachingService : ICategoryCachingService
         }
     }
 
-    public async Task<MetaPaginationDto<List<CategoryEntity>>?> GetDeletedCoursesAsync(string unique)
+    public async Task<MetaPaginationDto<List<CategoryEntity>>?> GetDeletedCategoriesAsync(string unique)
     {
         try
         {
@@ -150,7 +150,7 @@ public class CategoryCachingService : ICategoryCachingService
         }
     }
 
-    public async Task<bool?> RemoveDeletedCoursesAsync()
+    public async Task<bool?> RemoveDeletedCategoriesAsync()
     {
         try
         {

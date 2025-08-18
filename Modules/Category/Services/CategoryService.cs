@@ -189,7 +189,7 @@ public class CategoryService : ICategoryService
 
                     if (isDeletionStatusChanged)
                     {
-                        await _categoryCachingService.RemoveDeletedCoursesAsync();
+                        await _categoryCachingService.RemoveDeletedCategoriesAsync();
                     }
                 }
                 catch (Exception ex)
@@ -232,7 +232,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetDeletedCoursesAsync(GetDeletedCoursesDto dto)
+    public async Task<MetaPaginationDto<List<CategoryEntity>>> GetDeletedCategoriesAsync(GetDeletedCategoriesDto dto)
     {
         try
         {
@@ -240,7 +240,7 @@ public class CategoryService : ICategoryService
             string unique = JsonConvert.SerializeObject(dto);
 
             // Try to get from cache first
-            var cachedDeletedCourses = await _categoryCachingService.GetDeletedCoursesAsync(unique);
+            var cachedDeletedCourses = await _categoryCachingService.GetDeletedCategoriesAsync(unique);
             if (cachedDeletedCourses != null)
             {
                 return cachedDeletedCourses;
@@ -284,7 +284,7 @@ public class CategoryService : ICategoryService
             };
 
             // Cache the result
-            await _categoryCachingService.CacheDeletedCoursesAsync(result, unique);
+            await _categoryCachingService.CacheDeletedCategoriesAsync(result, unique);
 
             return result;
         }

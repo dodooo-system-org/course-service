@@ -256,7 +256,7 @@ public class CourseServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Single(result.Data);
         Assert.Equal("Advanced Course", result.Data[0].CourseName);
-        Assert.Equal(CourseLevel.Advanced, result.Data[0].Level);
+        Assert.Equal(CourseLevel.Advanced, result.Data[0].CourseLevel);
         Assert.Equal(1, result.Meta.TotalCount);
     }
 
@@ -725,7 +725,7 @@ public class CourseServiceTests : IDisposable
         Assert.Equal(courseEntity1.CourseName, course.CourseName);
         Assert.Equal(courseEntity1.CourseDescription, course.CourseDescription);
         Assert.Equal(courseEntity1.CourseImageUrl, course.CourseImageUrl);
-        Assert.Equal(courseEntity1.Level, course.Level);
+        Assert.Equal(courseEntity1.Level, course.CourseLevel);
         Assert.Equal(categoryEntity.CategoryId, course.Category.CategoryId);
     }
 
@@ -799,7 +799,7 @@ public class CourseServiceTests : IDisposable
         Assert.Equal(updateCourseDto.CourseName, updatedCourse.CourseName);
         Assert.Equal(updateCourseDto.CourseDescription, updatedCourse.CourseDescription);
         Assert.Equal(updateCourseDto.CourseImageUrl, updatedCourse.CourseImageUrl);
-        Assert.Equal(updateCourseDto.CourseLevel, updatedCourse.Level);
+        Assert.Equal(updateCourseDto.CourseLevel, updatedCourse.CourseLevel);
         Assert.Equal(updateCourseDto.CategoryId, updatedCourse.Category.CategoryId);
 
         // Verify the course was actually updated in the database

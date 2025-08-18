@@ -13,4 +13,8 @@ public interface ICourseCachingService
     Task<CourseDto?> GetCourseFromCacheAsync(Guid courseId);
     Task<bool?> CacheCourseAsync(CourseDto courseDto);
     Task<bool?> RemoveCourseFromCacheAsync(Guid courseId);
+
+    Task<MetaPaginationDto<List<CourseDto>>?> GetDeletedCoursesFromCacheAsync(string unique);
+    Task<bool?> CacheDeletedCoursesAsync(MetaPaginationDto<List<CourseDto>> result, string unique);
+    Task<bool?> RemoveDeletedCoursesFromCacheAsync();
 }

@@ -49,8 +49,18 @@ public class CourseService : ICourseService
             _context.Courses.Add(newCourse);
             await _context.SaveChangesAsync();
 
-            // clear all courses cache without await for better performance
-            _courseCachingService.RemoveAllCoursesFromCacheAsync();
+            // clear all courses cache, fire-and-forget
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _courseCachingService.RemoveAllCoursesFromCacheAsync();
+                }
+                catch (Exception)
+                {
+                    _logger.LogError("Failed to clear course cache after creating a new course");
+                }
+            });
             return newCourse;
         }
         catch (Exception error)
@@ -58,6 +68,34 @@ public class CourseService : ICourseService
             _logger.LogError(error, "Create course failed");
             throw ServiceErrorHelper.GenerateErrorService(error, "Failed to create course");
         }
+    }
+
+    private async Task<IQueryable<CourseEntity>> CommonQuery(IQueryable<CourseEntity> query, Guid? categoryId, CourseLevel? courseLevel, string? queryText)
+    {
+        if (categoryId != Guid.Empty && categoryId != null)
+        {
+            query = query.Where(c => c.CategoryId == categoryId);
+        }
+
+        if (courseLevel != null)
+        {
+            query = query.Where(c => c.Level == courseLevel);
+        }
+
+
+        if (!string.IsNullOrEmpty(queryText))
+        {
+            // Use raw SQL for full-text search and then join with other filters
+            var courseIds = await _context.Courses
+                .FromSqlRaw("SELECT course_id FROM Courses WHERE MATCH(course_name) AGAINST ({0} IN NATURAL LANGUAGE MODE)", queryText)
+                .Select(c => c.CourseId)
+                .ToListAsync();
+
+            query = query.Where(c => courseIds.Contains(c.CourseId));
+        }
+
+
+        return query;
     }
 
     public async Task<MetaPaginationDto<List<CourseDto>>> GetAllCoursesAsync(AllCourseQueryDto queryDto)
@@ -74,16 +112,6 @@ public class CourseService : ICourseService
             var query = _context.Courses.Include(c => c.Category).AsQueryable();
 
             // Apply filters based on queryDto
-            if (queryDto.CategoryId != null)
-            {
-                query = query.Where(c => c.CategoryId == queryDto.CategoryId);
-            }
-
-            if (queryDto.CourseLevel != null)
-            {
-                query = query.Where(c => c.Level == queryDto.CourseLevel);
-            }
-
             if (queryDto.IsActive != null)
             {
                 query = query.Where(c => c.IsActive == queryDto.IsActive);
@@ -99,16 +127,7 @@ public class CourseService : ICourseService
                 query = query.Where(c => c.IsDeleted != true);
             }
 
-            if (!String.IsNullOrEmpty(queryDto.Query))
-            {
-                // Use raw SQL for full-text search and then join with other filters
-                var courseIds = await _context.Courses
-                    .FromSqlRaw("SELECT course_id FROM Courses WHERE MATCH(course_name) AGAINST ({0} IN NATURAL LANGUAGE MODE)", queryDto.Query)
-                    .Select(c => c.CourseId)
-                    .ToListAsync();
-
-                query = query.Where(c => courseIds.Contains(c.CourseId));
-            }
+            query = await CommonQuery(query, queryDto.CategoryId, queryDto.CourseLevel, queryDto.Query);
 
             var coursesWithCounts = await query
             .Skip((queryDto.Page - 1) * queryDto.Size)
@@ -184,6 +203,73 @@ public class CourseService : ICourseService
         }
     }
 
+    public async Task<MetaPaginationDto<List<CourseDto>>> GetDeletedCoursesAsync(GetDeletedCourseDto queryDto)
+    {
+        try
+        {
+            string unique = JsonConvert.SerializeObject(queryDto).ToString();
+            var cachedData = await _courseCachingService.GetDeletedCoursesFromCacheAsync(unique);
+            if (cachedData != null)
+            {
+                return cachedData;
+            }
+
+            // Retrieve database if cache is null
+            IQueryable<CourseEntity> query = _context.Courses.Include(c => c.Category).AsQueryable();
+            query = await CommonQuery(query, queryDto.CategoryId, queryDto.CourseLevel, queryDto.Query);
+            query = query.Where(c => c.IsDeleted == true);
+
+            if (queryDto.StartDate.HasValue)
+            {
+                query = query.Where(c => c.DeletedAt >= queryDto.StartDate.Value);
+            }
+            if (queryDto.EndDate.HasValue)
+            {
+                query = query.Where(c => c.DeletedAt <= queryDto.EndDate.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var coursesWithCounts = await query
+            .OrderBy(c => c.UpdatedAt)
+            .Skip((queryDto.Page - 1) * queryDto.Size)
+            .Take(queryDto.Size)
+            .Select(c => new
+            {
+                Course = c,
+                ModuleCount = _context.Modules.Count(m => m.CourseId == c.CourseId && !m.IsDeleted),
+                LessonCount = _context.Modules
+                    .Where(m => m.CourseId == c.CourseId && !m.IsDeleted)
+                    .SelectMany(m => _context.Lessons.Where(l => l.ModuleId == m.ModuleId && !l.IsDeleted))
+                    .Count()
+            })
+            .ToListAsync();
+
+            var courses = coursesWithCounts.Select(x => x.Course.MapToDto(x.ModuleCount, x.LessonCount)).ToList();
+
+            var result = new MetaPaginationDto<List<CourseDto>>
+            {
+                Meta = new MetaDto
+                {
+                    Page = queryDto.Page,
+                    Size = queryDto.Size,
+                    TotalCount = totalCount
+                },
+                Data = courses
+            };
+
+            // Cache the deleted courses
+            await _courseCachingService.CacheDeletedCoursesAsync(result, unique);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get deleted courses failed");
+            throw ServiceErrorHelper.GenerateErrorService(ex, "Failed to get deleted courses");
+        }
+    }
+
     public async Task<CourseDto> UpdateCourseAsync(Guid courseId, UpdateCourseDto course)
     {
         try
@@ -200,6 +286,10 @@ public class CourseService : ICourseService
             {
                 throw new KeyNotFoundException($"Course not found");
             }
+
+            bool isDeletionStatusChanged = existingCourse.IsDeleted != category.IsDeleted;
+            bool wasDeleted = existingCourse.IsDeleted;
+
             existingCourse.CourseName = course.CourseName;
             existingCourse.CourseDescription = course.CourseDescription;
             existingCourse.CourseImageUrl = course.CourseImageUrl;
@@ -207,6 +297,18 @@ public class CourseService : ICourseService
             existingCourse.CategoryId = category.CategoryId;
             existingCourse.Category = category;
             existingCourse.UpdatedAt = DateTime.UtcNow;
+            existingCourse.IsActive = course.IsActive;
+
+
+            if (course.IsDeleted && !wasDeleted)
+            {
+                existingCourse.DeletedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                existingCourse.DeletedAt = null;
+            }
+
             _context.Courses.Update(existingCourse);
             await _context.SaveChangesAsync();
 
@@ -218,8 +320,16 @@ public class CourseService : ICourseService
                 .CountAsync();
 
             // Clear the cache for this course and list of courses
-            _courseCachingService.RemoveCourseFromCacheAsync(courseId);
-            _courseCachingService.RemoveAllCoursesFromCacheAsync();
+            _ = Task.Run(async () =>
+            {
+                await _courseCachingService.RemoveCourseFromCacheAsync(courseId);
+                await _courseCachingService.RemoveAllCoursesFromCacheAsync();
+
+                if (isDeletionStatusChanged)
+                {
+                    await _courseCachingService.RemoveDeletedCoursesFromCacheAsync();
+                }
+            });
 
             return existingCourse.MapToDto(moduleCount, lessonCount);
         }
@@ -229,4 +339,5 @@ public class CourseService : ICourseService
             throw ServiceErrorHelper.GenerateErrorService(error, "Failed to update course by ID");
         }
     }
+
 }

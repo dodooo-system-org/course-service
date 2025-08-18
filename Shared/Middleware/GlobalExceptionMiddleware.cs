@@ -2,16 +2,19 @@ using System;
 using System.Net;
 using System.Text.Json;
 using course_service.Shared.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace course_service.Shared.Middleware
 {
     public class GlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-        public GlobalExceptionMiddleware(RequestDelegate next)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
         private int GetStatusCode(Exception ex)
         {
@@ -40,6 +43,10 @@ namespace course_service.Shared.Middleware
             }
             catch (Exception ex)
             {
+                // Log the exception with full details
+                _logger.LogError(ex, "An unhandled exception occurred. Request Path: {RequestPath}, Method: {RequestMethod}",
+                    context.Request.Path, context.Request.Method);
+
                 int statusCode = this.GetStatusCode(ex);
 
                 string errorMessage = ex.GetType() != typeof(Exception) ? ex.Message : "An unexpected error occurred";

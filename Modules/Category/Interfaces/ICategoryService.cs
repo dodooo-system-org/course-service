@@ -13,5 +13,5 @@ public interface ICategoryService
     Task<MetaPaginationDto<List<CategoryEntity>>> GetListAsync(GetListCategoryDto pagination);
     Task<CategoryEntity> UpdateOneAsync(Guid id, UpdateCategoryDto category);
     Task<IEnumerable<CategoryEntity>> GetAvailableCategoriesAsync();
-    Task<MetaPaginationDto<List<CategoryEntity>>> GetDeletedCoursesAsync(GetDeletedCoursesDto dto);
+    Task<MetaPaginationDto<List<CategoryEntity>>> GetDeletedCategoriesAsync(GetDeletedCategoriesDto dto);
 }

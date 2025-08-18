@@ -36,10 +36,10 @@ namespace course_service.Modules.Category.Controllers
 
         [HttpGet("delete")]
         [RequireAdmin]
-        public async Task<IActionResult> GetDeletedCourses([FromQuery] GetDeletedCoursesDto dto)
+        public async Task<IActionResult> GetDeletedCategories([FromQuery] GetDeletedCategoriesDto dto)
         {
-            var deletedCourses = await _categoryService.GetDeletedCoursesAsync(dto);
-            return Ok(deletedCourses);
+            var deletedCategories = await _categoryService.GetDeletedCategoriesAsync(dto);
+            return Ok(deletedCategories);
         }
 
         [HttpGet("{id}")]

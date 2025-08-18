@@ -49,5 +49,13 @@ namespace course_service.Modules.Course.Controllers
             var updatedCourse = await _courseService.UpdateCourseAsync(id, updateCourseDto);
             return Ok(updatedCourse);
         }
+
+        [HttpGet("delete")]
+        [RequireAdmin]
+        public async Task<IActionResult> GetDeletedCourses([FromQuery] GetDeletedCourseDto queryDto)
+        {
+            var deletedCourses = await _courseService.GetDeletedCoursesAsync(queryDto);
+            return Ok(deletedCourses);
+        }
     }
 }
